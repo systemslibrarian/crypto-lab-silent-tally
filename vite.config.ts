@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  base: '/silent-tally/',
+  base: '/crypto-lab-silent-tally/',
   plugins: [tailwindcss()],
   build: {
     outDir: 'dist',

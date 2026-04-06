@@ -2,7 +2,7 @@
 
 **Secure MPC in the browser** — five hospitals compute combined clinical trial enrollment without revealing individual counts. Shamir SSS · additive homomorphism · GF(2⁶¹−1) · no trusted third party.
 
-**[▸ Live Demo](https://systemslibrarian.github.io/silent-tally/)**
+**[▸ Live Demo](https://systemslibrarian.github.io/crypto-lab-silent-tally/)**
 
 Part of the [systemslibrarian crypto-lab collection](https://github.com/systemslibrarian).
 
@@ -82,7 +82,7 @@ The demo is structured as a step-through navigator. Users advance manually — n
 ## Architecture
 
 ```
-silent-tally/
+crypto-lab-silent-tally/
 ├── Cargo.toml              # Rust crate: wasm-bindgen + getrandom
 ├── src/
 │   └── lib.rs              # GF(p) arithmetic, Shamir SSS, Lagrange interpolation
