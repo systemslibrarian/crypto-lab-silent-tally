@@ -74,7 +74,11 @@ function render(focusExhibit = false): void {
 
   if (focusExhibit) {
     exhibitContainer.focus();
-    exhibitContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    exhibitContainer.scrollIntoView({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
   }
 }
 

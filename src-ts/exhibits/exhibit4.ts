@@ -1,10 +1,5 @@
 import type { AppState } from '../types.js';
-
-function formatBigint(n: bigint): string {
-  const s = n.toString();
-  if (s.length <= 10) return s;
-  return s.slice(0, 5) + '…' + s.slice(-5);
-}
+import { formatBigint } from '../format.js';
 
 export function renderExhibit4(container: HTMLElement, state: AppState): void {
   const hospitals = state.hospitals;

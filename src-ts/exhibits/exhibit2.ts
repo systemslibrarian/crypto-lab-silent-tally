@@ -106,6 +106,11 @@ export function renderExhibit2(container: HTMLElement, state: AppState, onStateC
         h.count = val;
         h.locked = true;
         onStateChange();
+        // The grid re-renders and the locked button becomes disabled, so move
+        // focus onward: the next unlocked "Lock In" button, or once every
+        // hospital is locked, the "Next" navigation button.
+        const nextLock = container.querySelector<HTMLElement>('[data-lock-id]:not([disabled])');
+        (nextLock ?? document.getElementById('btn-next'))?.focus();
       });
     }
   }

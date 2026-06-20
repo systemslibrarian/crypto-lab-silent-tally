@@ -1,12 +1,7 @@
 import type { AppState } from '../types.js';
 import { wasm } from '../wasm.js';
-import { P } from '../types.js';
-
-function formatBigint(n: bigint): string {
-  const s = n.toString();
-  if (s.length <= 12) return s;
-  return s.slice(0, 6) + '…' + s.slice(-6);
-}
+import { formatBigint } from '../format.js';
+import { lagrangeBasisAtZero } from '../field.js';
 
 export function computeLocalSums(state: AppState): void {
   if (state.localSums.length > 0) return;
@@ -33,28 +28,12 @@ export function renderExhibit5(container: HTMLElement, state: AppState): void {
   const reconstructed = wasm.lagrange_interpolate(xVals, yVals);
   state.reconstructedTotal = Number(reconstructed);
 
-  // Compute Lagrange basis values for display
-  // L_0(0) = (0-2)(0-3) / (1-2)(1-3) = 6/2 = 3
-  // L_1(0) = (0-1)(0-3) / (2-1)(2-3) = 3/(-1) = -3
-  // L_2(0) = (0-1)(0-2) / (3-1)(3-2) = 2/2 = 1
-
-  // Compute actual Lagrange coefficients mod p
-  const x = [1n, 2n, 3n];
-  const lagrangeCoeffs: bigint[] = [];
-  for (let i = 0; i < 3; i++) {
-    let num = 1n;
-    let den = 1n;
-    for (let j = 0; j < 3; j++) {
-      if (i === j) continue;
-      // numerator: (0 - x_j) mod p
-      const neg_xj = x[j] === 0n ? 0n : P - x[j];
-      num = wasm.gf_mul(num, neg_xj);
-      // denominator: (x_i - x_j) mod p
-      const diff = x[i] >= x[j] ? x[i] - x[j] : P - (x[j] - x[i]);
-      den = wasm.gf_mul(den, diff);
-    }
-    lagrangeCoeffs.push(wasm.gf_mul(num, wasm.gf_inv(den)));
-  }
+  // Lagrange basis coefficients L_i(0) for the reconstruction points x = 1,2,3.
+  // For these fixed nodes they evaluate to the integers 3, -3, 1 (mod p):
+  //   L_1(0) = (0-2)(0-3) / (1-2)(1-3) = 6/2  =  3
+  //   L_2(0) = (0-1)(0-3) / (2-1)(2-3) = 3/-1 = -3  (= P-3 mod p)
+  //   L_3(0) = (0-1)(0-2) / (3-1)(3-2) = 2/2  =  1
+  const lagrangeCoeffs = lagrangeBasisAtZero([1n, 2n, 3n]);
 
   container.innerHTML = `
     <div class="space-y-8">
@@ -87,7 +66,7 @@ export function renderExhibit5(container: HTMLElement, state: AppState): void {
               </div>
               <div class="font-mono text-xs text-gray-500">
                 T<sub>${h.id}</sub> = ${sharesReceived.map((s, k) => `<span class="text-gray-400">${formatBigint(s)}</span>${k < 4 ? ' + ' : ''}`).join('')}
-                <span class="text-gray-600"> (mod p)</span>
+                <span class="text-gray-400"> (mod p)</span>
               </div>
             </div>
           `;
@@ -116,7 +95,7 @@ export function renderExhibit5(container: HTMLElement, state: AppState): void {
       <!-- Total reveal -->
       <div class="bg-gray-900 rounded-xl p-6 border-2 border-emerald-600 text-center space-y-3" id="total-reveal" role="status" aria-live="polite" aria-label="Reconstructed total enrollment">
         <div class="text-xs text-emerald-500 font-mono uppercase tracking-wider">Total Enrollment Across All Sites</div>
-        <div class="text-4xl sm:text-5xl font-bold text-emerald-400 font-mono">${expectedTotal.toLocaleString()}</div>
+        <div class="text-4xl sm:text-5xl font-bold text-emerald-400 font-mono">${Number(reconstructed).toLocaleString()}</div>
         <div class="text-sm text-gray-400">
           Reconstructed via Lagrange interpolation over GF(2⁶¹ − 1)
         </div>

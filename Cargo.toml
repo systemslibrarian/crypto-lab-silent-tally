@@ -3,6 +3,9 @@ name = "silent-tally"
 version = "0.1.0"
 edition = "2021"
 description = "Shamir Secret Sharing over GF(2^61-1) for secure multi-party computation"
+license = "MIT"
+repository = "https://github.com/systemslibrarian/crypto-lab-silent-tally"
+readme = "README.md"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

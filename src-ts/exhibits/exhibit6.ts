@@ -1,10 +1,5 @@
 import type { AppState } from '../types.js';
-
-function formatBigint(n: bigint): string {
-  const s = n.toString();
-  if (s.length <= 12) return s;
-  return s.slice(0, 6) + '…' + s.slice(-6);
-}
+import { formatBigint } from '../format.js';
 
 export function renderExhibit6(container: HTMLElement, state: AppState, onStateChange: () => void): void {
   const coalition = state.coalitionSelection;
@@ -14,23 +9,12 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
   // The coalition tries to learn the secret of a non-coalition hospital
   const targetId = state.hospitals.find(h => !coalition.has(h.id))?.id ?? 1;
   const targetData = state.shareData.get(targetId)!;
-  const targetSecret = state.hospitals.find(h => h.id === targetId)!.count;
 
   // Shares of the target's polynomial held by the coalition members
   const coalitionShares = coalitionArr.map(id => ({
     partyId: id,
     share: targetData.shares[id - 1],
   }));
-
-  // Generate multiple fake curves through the 2 points to show underdetermined system
-  const fakeCurves: { secret: number; label: string }[] = [];
-  if (coalitionArr.length === 2) {
-    // For visualization: show that many different secrets are consistent with the 2 known points
-    const fakeSecrets = [42, 1000, 5000, 9999, 3333, 7777, targetSecret];
-    for (const fs of fakeSecrets) {
-      fakeCurves.push({ secret: fs, label: fs === targetSecret ? `${fs} (actual)` : `${fs}` });
-    }
-  }
 
   container.innerHTML = `
     <div class="space-y-8">
@@ -64,7 +48,7 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
             >
               <div class="text-2xl mb-1" aria-hidden="true">${selected ? '🕵️' : '🏥'}</div>
               <div class="text-xs font-medium ${selected ? 'text-red-300' : 'text-white'}">${h.name.split(' ')[0]}</div>
-              <div class="text-[10px] mt-1 ${selected ? 'text-red-400' : 'text-gray-500'}">
+              <div class="text-[10px] mt-1 ${selected ? 'text-red-400' : 'text-gray-400'}">
                 ${selected ? 'In coalition' : 'Click to add'}
               </div>
             </button>
@@ -123,49 +107,68 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
               <h4 class="text-xs font-semibold text-gray-400 mb-3">
                 Multiple valid polynomials through the 2 known points
               </h4>
-              <svg viewBox="0 0 400 200" class="w-full max-w-lg mx-auto" role="img" aria-label="Multiple polynomial curves passing through 2 known share points, each implying a different secret — demonstrating that the system is underdetermined">
-                <!-- Grid -->
-                <line x1="50" y1="170" x2="380" y2="170" stroke="#374151" stroke-width="1"/>
-                <line x1="50" y1="170" x2="50" y2="20" stroke="#374151" stroke-width="1"/>
-                <text x="215" y="195" text-anchor="middle" fill="#6b7280" font-size="10">x</text>
+              ${(() => {
+                // Honest visualization: draw real parabolas that each pass
+                // EXACTLY through the coalition's two known points but cross the
+                // f(0) axis at a different height — so every secret is possible.
+                //
+                // Coordinates: x in [0,6] → pixels; an abstract display height
+                // VMAX → pixels. The two known points sit at fixed display
+                // heights (their true field values are ~2^61 and meaningless on
+                // a small linear axis; what matters is that they are *fixed*).
+                const VMAX = 10;
+                const px = (x: number) => 50 + (x / 6) * 330;
+                const py = (v: number) => 170 - (Math.max(0, Math.min(VMAX, v)) / VMAX) * 150;
 
-                <!-- Known points -->
-                ${coalitionShares.map(cs => {
-                  const px = 50 + (cs.partyId / 6) * 330;
-                  return `
-                    <circle cx="${px}" cy="90" r="5" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/>
-                    <text x="${px}" y="82" text-anchor="middle" fill="#fca5a5" font-size="8">f(${cs.partyId})</text>
-                  `;
-                }).join('')}
+                const [x1, x2] = [coalitionShares[0].partyId, coalitionShares[1].partyId];
+                // Fixed (but data-seeded) display heights for the two points.
+                const y1 = 2.4 + Number(coalitionShares[0].share % 520n) / 100;
+                const y2 = 2.4 + Number(coalitionShares[1].share % 520n) / 100;
 
-                <!-- Multiple curves through both points -->
-                ${fakeCurves.map((fc, idx) => {
-                  const colors = ['#818cf8', '#34d399', '#f59e0b', '#f87171', '#a78bfa', '#fb923c', '#22d3ee'];
-                  const color = colors[idx % colors.length];
-                  // Draw a parabola-like curve from x=0 to x=5.5
-                  // with different y-intercepts to show different secrets
-                  const yIntercept = 170 - (fc.secret / 10000) * 140;
-                  const points: string[] = [];
-                  for (let x = 0; x <= 55; x++) {
-                    const t = x / 10;
-                    const px = 50 + (t / 6) * 330;
-                    // Simple quadratic through points with different f(0)
-                    const py = yIntercept + (t * t * 2) - (t * 8) + Math.sin(idx + t) * 5;
-                    points.push(`${px},${Math.max(20, Math.min(170, py))}`);
+                // Real Lagrange quadratic through (0,c), (x1,y1), (x2,y2).
+                const curveAt = (c: number, x: number) => {
+                  const L0 = ((x - x1) * (x - x2)) / ((0 - x1) * (0 - x2));
+                  const L1 = (x * (x - x2)) / ((x1 - 0) * (x1 - x2));
+                  const L2 = (x * (x - x1)) / ((x2 - 0) * (x2 - x1));
+                  return c * L0 + y1 * L1 + y2 * L2;
+                };
+
+                const colors = ['#818cf8', '#34d399', '#f59e0b', '#f87171', '#a78bfa', '#22d3ee'];
+                const intercepts = [9.2, 7.6, 6.0, 4.4, 2.8, 1.2];
+                const curves = intercepts.map((c, idx) => {
+                  const pts: string[] = [];
+                  for (let s = 0; s <= 60; s++) {
+                    const x = (s / 60) * 6;
+                    pts.push(`${px(x).toFixed(1)},${py(curveAt(c, x)).toFixed(1)}`);
                   }
-                  return `<polyline points="${points.join(' ')}" fill="none" stroke="${color}" stroke-width="1.2" opacity="0.6"/>`;
-                }).join('')}
+                  return `<polyline points="${pts.join(' ')}" fill="none" stroke="${colors[idx % colors.length]}" stroke-width="1.3" opacity="0.75"/>
+                    <circle cx="${px(0).toFixed(1)}" cy="${py(c).toFixed(1)}" r="2.5" fill="${colors[idx % colors.length]}"/>`;
+                }).join('');
 
-                <!-- f(0) region -->
-                <rect x="42" y="25" width="16" height="140" fill="#ef4444" opacity="0.08" rx="4"/>
-                <text x="50" y="18" text-anchor="middle" fill="#ef4444" font-size="8">f(0) = ?</text>
+                const knownPoints = coalitionShares.map((cs, i) => {
+                  const yv = i === 0 ? y1 : y2;
+                  return `<circle cx="${px(cs.partyId).toFixed(1)}" cy="${py(yv).toFixed(1)}" r="5" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/>
+                    <text x="${px(cs.partyId).toFixed(1)}" y="${(py(yv) - 9).toFixed(1)}" text-anchor="middle" fill="#fca5a5" font-size="8">f(${cs.partyId}) known</text>`;
+                }).join('');
 
-                <!-- Legend -->
-                <text x="380" y="25" text-anchor="end" fill="#6b7280" font-size="7">Each curve = a different possible secret</text>
-              </svg>
+                return `
+                <svg viewBox="0 0 400 200" class="w-full max-w-lg mx-auto" role="img" aria-label="Six polynomial curves each passing through the coalition's two known share points but crossing the f(0) axis at six different heights, showing that every secret is equally consistent with two shares">
+                  <!-- Axes -->
+                  <line x1="50" y1="170" x2="380" y2="170" stroke="#374151" stroke-width="1"/>
+                  <line x1="50" y1="170" x2="50" y2="20" stroke="#374151" stroke-width="1"/>
+                  <text x="215" y="193" text-anchor="middle" fill="#6b7280" font-size="10">x (party index)</text>
+                  <!-- f(0) axis highlight: every curve crosses here at a different point -->
+                  <rect x="46" y="22" width="8" height="148" fill="#ef4444" opacity="0.12" rx="3"/>
+                  <text x="50" y="16" text-anchor="middle" fill="#ef4444" font-size="8">f(0) = ?</text>
+                  ${curves}
+                  ${knownPoints}
+                  <text x="380" y="16" text-anchor="end" fill="#6b7280" font-size="7">6 curves · 1 pair of points · 6 different secrets</text>
+                </svg>`;
+              })()}
               <p class="text-xs text-gray-500 mt-2 text-center">
-                All curves pass through the 2 known points. Each implies a different secret f(0).
-                The colluders have no way to determine which curve is real.
+                Every curve passes through <strong class="text-gray-400">both</strong> red points the colluders hold,
+                yet each crosses the f(0) axis at a different height. With only 2 points, the secret is
+                genuinely undetermined — these are real polynomials, not an artist's impression.
               </p>
             </div>
           ` : ''}
@@ -203,6 +206,10 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
         coalition.add(id);
       }
       onStateChange();
+      // The whole exhibit re-renders, so restore focus to the same card the
+      // user just activated (keyboard/screen-reader users keep their place).
+      const refreshed = container.querySelector<HTMLElement>(`[data-coalition-id="${id}"]`);
+      refreshed?.focus();
     });
   });
 }

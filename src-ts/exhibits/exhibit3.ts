@@ -1,12 +1,7 @@
 import type { AppState } from '../types.js';
 import { wasm } from '../wasm.js';
 import { THRESHOLD, N_PARTIES, P } from '../types.js';
-
-function formatBigint(n: bigint): string {
-  const s = n.toString();
-  if (s.length <= 12) return s;
-  return s.slice(0, 6) + '…' + s.slice(-6);
-}
+import { formatBigint } from '../format.js';
 
 export function computeShares(state: AppState): void {
   if (state.shareData.size > 0) return; // already computed
@@ -45,12 +40,12 @@ export function renderExhibit3(container: HTMLElement, state: AppState): void {
             <span class="text-indigo-400">f(x)</span> = ${secret.toString()}
             + ${formatBigint(data.coefficients[0])}·x
             + ${formatBigint(data.coefficients[1])}·x²
-            <span class="text-gray-600">(mod p)</span>
+            <span class="text-gray-400">(mod p)</span>
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2" role="list" aria-label="Shares for Hospital ${h.id}">
             ${data.shares.map((s, i) => `
               <div class="bg-gray-950 rounded p-2 text-center" role="listitem">
-                <div class="text-[10px] text-gray-500 font-mono">f(${i + 1})</div>
+                <div class="text-[10px] text-gray-400 font-mono">f(${i + 1})</div>
                 <div class="text-xs text-emerald-400 font-mono break-all" aria-label="Share f(${i + 1}) value">${formatBigint(s)}</div>
               </div>
             `).join('')}

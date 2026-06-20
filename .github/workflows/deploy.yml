@@ -15,7 +15,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Run the full test suite first; the build/deploy only proceed if it passes.
+  test:
+    uses: ./.github/workflows/test.yml
+
   build:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,8 +28,11 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@v2
+
       - name: Install wasm-pack
-        run: cargo install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
 
       - name: Build WASM
         run: wasm-pack build --target web --out-dir pkg

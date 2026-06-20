@@ -1,0 +1,51 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main] # main is covered by the deploy workflow's gate
+  workflow_call: # invoked by deploy.yml before publishing
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust (with clippy + rustfmt)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@v2
+
+      - name: Rust formatting
+        run: cargo fmt --check
+
+      - name: Rust lint (clippy)
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Rust tests
+        run: cargo test
+
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+
+      - name: Build WASM (needed for the TypeScript typecheck)
+        run: wasm-pack build --target web --out-dir pkg
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript typecheck
+        run: npx tsc --noEmit
+
+      - name: Frontend unit tests
+        run: npm test

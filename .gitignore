@@ -2,6 +2,7 @@ node_modules/
 dist/
 pkg/
 target/
+coverage/
 *.swp
 *.swo
 .DS_Store

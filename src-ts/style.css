@@ -5,6 +5,19 @@ body {
 	color: var(--color-gray-100);
 }
 
+/* Respect users who prefer reduced motion: neutralize spinners, transitions,
+   and smooth scrolling rather than removing the loading affordance entirely. */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.001ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.001ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
 header,
 nav {
 	border-color: var(--color-gray-800);
@@ -20,11 +33,9 @@ nav {
 }
 
 .theme-toggle {
-	position: absolute;
-	top: 1rem;
-	right: 1rem;
-	width: 2.6rem;
-	height: 2.6rem;
+	flex: none;
+	width: 2.75rem;
+	height: 2.75rem;
 	border-radius: 9999px;
 	border: 1px solid var(--color-gray-800);
 	background: var(--color-gray-800);

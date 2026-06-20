@@ -20,20 +20,22 @@
   </a>
 
   <!-- Header -->
-  <header class="relative border-b border-gray-800 px-4 sm:px-6 py-4" role="banner">
-    <div class="max-w-5xl mx-auto flex items-center justify-between">
-      <div>
+  <header class="border-b border-gray-800 px-4 sm:px-6 py-4" role="banner">
+    <div class="max-w-5xl mx-auto flex items-center justify-between gap-3">
+      <div class="min-w-0">
         <h1 class="text-xl font-bold tracking-tight text-white">silent-tally</h1>
         <p class="text-sm text-gray-400">Shamir-Based MPC · Clinical Trial Demo</p>
       </div>
-      <div id="progress" class="text-sm text-gray-500 font-mono" aria-live="polite" aria-atomic="true"></div>
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div id="progress" class="text-xs sm:text-sm text-gray-400 font-mono" aria-live="polite" aria-atomic="true"></div>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to light mode">🌙</button>
+      </div>
     </div>
-    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to light mode">🌙</button>
   </header>
 
   <!-- Main exhibit area -->
   <main class="flex-1 px-4 sm:px-6 py-6 sm:py-8" role="main" id="main-content">
-    <div id="exhibit-container" class="max-w-5xl mx-auto" tabindex="-1" aria-live="polite" aria-atomic="true"></div>
+    <div id="exhibit-container" class="max-w-5xl mx-auto" tabindex="-1"></div>
   </main>
 
   <!-- Navigation -->
