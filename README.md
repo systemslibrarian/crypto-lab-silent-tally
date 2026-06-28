@@ -1,14 +1,6 @@
-# silent-tally
+# crypto-lab-silent-tally
 
-[![Deploy](https://github.com/systemslibrarian/crypto-lab-silent-tally/actions/workflows/deploy.yml/badge.svg)](https://github.com/systemslibrarian/crypto-lab-silent-tally/actions/workflows/deploy.yml)
-[![Test](https://github.com/systemslibrarian/crypto-lab-silent-tally/actions/workflows/test.yml/badge.svg)](https://github.com/systemslibrarian/crypto-lab-silent-tally/actions/workflows/test.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://systemslibrarian.github.io/crypto-lab-silent-tally/)
-
-> **Five hospitals. One question. Zero data sharing.**
-> An interactive, in-browser walkthrough of secure Multi-Party Computation.
-
-## 1. What It Is
+## What It Is
 
 silent-tally is a browser demo of **Multi-Party Computation (MPC)** for secure
 summation, built on **Shamir Secret Sharing**, **GF(p) arithmetic** over the
@@ -22,7 +14,7 @@ cannot reconstruct a secret. The privacy guarantee demonstrated here is
 **information-theoretic** for the underlying sharing model: with fewer than $t$
 shares, every possible secret is equally consistent with what an attacker holds.
 
-## 2. When to Use It
+## When to Use It
 
 - When multiple organizations must publish an aggregate but cannot reveal
   individual inputs — additive homomorphism computes the sum directly from shares.
@@ -33,26 +25,62 @@ shares, every possible secret is equally consistent with what an attacker holds.
 - **Not** for production-critical deployments without an external audit — this is
   a demo implementation, not an audited system.
 
-## 3. Live Demo
+## Live Demo
 
-**→ [systemslibrarian.github.io/crypto-lab-silent-tally](https://systemslibrarian.github.io/crypto-lab-silent-tally/)**
+**[systemslibrarian.github.io/crypto-lab-silent-tally](https://systemslibrarian.github.io/crypto-lab-silent-tally/)**
 
-The demo walks through six exhibits:
+The demo walks through six exhibits — from why a central aggregator fails,
+through private input, secret sharing, the share-distribution matrix, and
+homomorphic computation, to a coalition attack. You can edit each hospital's
+enrollment value, step through the protocol with the on-screen buttons or the
+**← / →** arrow keys, and watch the total get reconstructed without any
+individual input ever being revealed.
 
-| # | Exhibit | What it shows |
-|---|---------|---------------|
-| 1 | The Problem | Why a central aggregator fails, and what MPC offers instead |
-| 2 | Private Input | Each hospital locks in its enrollment count locally |
-| 3 | Secret Sharing | Each secret split via a random degree-2 polynomial over GF(p) |
-| 4 | Distribution | The 5×5 share matrix — who sends what to whom |
-| 5 | Computation & Reconstruction | Additive homomorphism + Lagrange recover **only** the total |
-| 6 | Coalition Attack | Two colluders provably learn nothing — drawn as real polynomials |
+## What Can Go Wrong
 
-You can edit each hospital's enrollment value, step through the protocol with the
-on-screen buttons or the **← / →** arrow keys, and watch the total get
-reconstructed without any individual input ever being revealed.
+- Collusion of $t$ or more parties reconstructs any secret — the threshold is only
+  as strong as the assumption that fewer than $t$ participants cooperate.
+- The privacy guarantee is information-theoretic only for the sharing model; this
+  demo simulates all five parties in one browser tab and implements no secure
+  channels, authentication, or malicious-party defenses.
+- It assumes semi-honest parties — a malicious participant can submit inconsistent
+  or out-of-range shares to corrupt the tally undetected, since there is no
+  verifiable secret sharing here.
+- Weak randomness breaks privacy — polynomial coefficients must come from a CSPRNG
+  (`getrandom`), never `Math.random`, or the shares can leak the secret.
+- Field-range limits — all arithmetic is mod $p = 2^{61}-1$; inputs or totals that
+  exceed the field wrap around, so values must stay within range.
 
-## 4. How the Protocol Works
+## Real-World Usage
+
+- Privacy-preserving aggregate statistics — combining counts or totals across
+  organizations (clinical trials, salary surveys, ad measurement) without revealing
+  any single party's input.
+- Shamir Secret Sharing for key management — splitting master keys, HSM backups,
+  and root-of-trust material into $t$-of-$n$ shares.
+- Threshold custody — distributing control of high-value secrets (cryptocurrency
+  keys, signing keys) so no single holder can act alone.
+- MPC frameworks — additive secret sharing is a core building block in production
+  secure-computation systems for joint analytics.
+
+## How to Run Locally
+
+```bash
+git clone https://github.com/systemslibrarian/crypto-lab-silent-tally
+cd crypto-lab-silent-tally
+npm install
+npm run dev
+```
+
+## Related Demos
+
+- [crypto-lab-shamir-gate](https://systemslibrarian.github.io/crypto-lab-shamir-gate/) — Shamir Secret Sharing and Lagrange interpolation over GF(p), the sharing scheme at the heart of this demo.
+- [crypto-lab-vss-gate](https://systemslibrarian.github.io/crypto-lab-vss-gate/) — Feldman/Pedersen verifiable secret sharing, which catches the cheating shares silent-tally cannot.
+- [crypto-lab-paillier-gate](https://systemslibrarian.github.io/crypto-lab-paillier-gate/) — Paillier additive homomorphic encryption for private aggregation and voting.
+- [crypto-lab-threshold-decrypt](https://systemslibrarian.github.io/crypto-lab-threshold-decrypt/) — $t$-of-$n$ threshold ElGamal decryption with NIZK proofs.
+- [crypto-lab-frost-threshold](https://systemslibrarian.github.io/crypto-lab-frost-threshold/) — FROST threshold Ed25519 signing built on verifiable secret sharing.
+
+## How the Protocol Works
 
 Each hospital $i$ holds a secret $s_i$ and builds a random polynomial
 
@@ -72,7 +100,7 @@ With only $t - 1 = 2$ shares, the secret is information-theoretically hidden:
 infinitely many degree-2 polynomials pass through any two points, each implying a
 different $f(0)$. Exhibit 6 draws these curves for real.
 
-## 5. Architecture
+## Architecture
 
 ```
 ┌─────────────────────────┐      ┌──────────────────────────────┐
@@ -95,20 +123,18 @@ The field math lives in two deliberately mirrored places:
 **Tech stack:** Rust + `wasm-bindgen` · `getrandom` (CSPRNG) · TypeScript · Vite
 · Tailwind CSS v4 · Vitest · GitHub Actions → GitHub Pages.
 
-## 6. How to Run Locally
+## Exhibits
 
-```bash
-git clone https://github.com/systemslibrarian/crypto-lab-silent-tally.git
-cd crypto-lab-silent-tally
-npm install
-npm run wasm      # build the Rust core into pkg/ (one-time / after Rust changes)
-npm run dev       # start the Vite dev server
-```
+| # | Exhibit | What it shows |
+|---|---------|---------------|
+| 1 | The Problem | Why a central aggregator fails, and what MPC offers instead |
+| 2 | Private Input | Each hospital locks in its enrollment count locally |
+| 3 | Secret Sharing | Each secret split via a random degree-2 polynomial over GF(p) |
+| 4 | Distribution | The 5×5 share matrix — who sends what to whom |
+| 5 | Computation & Reconstruction | Additive homomorphism + Lagrange recover **only** the total |
+| 6 | Coalition Attack | Two colluders provably learn nothing — drawn as real polynomials |
 
-No environment variables are required. Building the WASM core needs the Rust
-toolchain and `wasm-pack` (`cargo install wasm-pack`).
-
-## 7. Testing
+## Testing
 
 All checks below run in CI and gate every deploy:
 
@@ -124,7 +150,11 @@ The Rust and TypeScript suites share test vectors — including all $\binom{5}{3
 reconstruction subsets, additive homomorphism, edge-case secrets, and a
 constructive proof that two shares reveal nothing.
 
-## 8. Security Notes
+Building the WASM core needs the Rust toolchain and `wasm-pack`
+(`cargo install wasm-pack`); run `npm run wasm` to build the Rust core into
+`pkg/` after Rust changes. No environment variables are required.
+
+## Security Notes
 
 - Polynomial coefficients come from a **cryptographically secure RNG**
   (`getrandom`), not `Math.random`.
@@ -134,16 +164,12 @@ constructive proof that two shares reveal nothing.
 - It is an educational artifact. **Do not** use it to protect real data without a
   proper, audited implementation.
 
-## 9. Part of the Crypto-Lab Suite
-
-This project is part of the broader crypto-lab suite at
-<https://systemslibrarian.github.io/crypto-lab/>.
-
 ## License
 
 [MIT](./LICENSE) © 2026 Paul Clark
 
 ---
 
-*So whether you eat or drink or whatever you do, do it all for the glory of God.*
-— 1 Corinthians 10:31
+*One of 60+ browser demos in the [Crypto Lab](https://crypto-lab.systemslibrarian.dev/) suite.*
+
+*"So whether you eat or drink or whatever you do, do it all for the glory of God." — 1 Corinthians 10:31*
