@@ -32,6 +32,15 @@ nav {
 	background-color: var(--color-gray-950);
 }
 
+/* Muted caption text: Tailwind's gray-500 (#6b7280) only reaches ~3.6:1 on the
+   app's dark gray-900/gray-950 surfaces, below the 4.5:1 AA threshold. Lift it
+   to gray-400 in dark mode. Scoped to the page body (main content, nav, footer,
+   loading overlay) so the always-dark shared header's own colours are untouched.
+   The light theme keeps its dedicated `.text-gray-500` remap (higher specificity). */
+html:not([data-theme='light']) :is(#main-content, nav, footer, #loading-overlay) .text-gray-500 {
+	color: var(--color-gray-400);
+}
+
 .theme-toggle {
 	flex: none;
 	width: 2.75rem;
@@ -106,10 +115,10 @@ html[data-theme='light'] .text-gray-400 {
 	color: var(--color-gray-600);
 }
 html[data-theme='light'] .text-gray-500 {
-	color: var(--color-gray-500);
+	color: var(--color-gray-600);
 }
 html[data-theme='light'] .text-gray-600 {
-	color: var(--color-gray-500);
+	color: var(--color-gray-600);
 }
 
 /* Borders */
@@ -132,6 +141,9 @@ html[data-theme='light'] .bg-emerald-950\/20 {
 }
 html[data-theme='light'] .bg-red-950\/20 {
 	background-color: var(--color-red-50);
+}
+html[data-theme='light'] .bg-red-950\/30 {
+	background-color: var(--color-red-100);
 }
 
 /* Accent borders */
@@ -166,6 +178,14 @@ html[data-theme='light'] #btn-prev:hover {
 	background-color: var(--color-gray-300);
 }
 
+/* Indigo-600 accent buttons (Next, "Lock In") keep their dark indigo fill in
+   light mode, so their label must stay white — the global
+   `.text-white -> gray-900` remap above would otherwise drop it to dark ink on
+   a dark fill (fails contrast). Restore white on any white-on-indigo control. */
+html[data-theme='light'] .bg-indigo-600.text-white {
+	color: var(--color-white);
+}
+
 /* Focus ring offset */
 html[data-theme='light'] .focus\:ring-offset-gray-950:focus {
 	--tw-ring-offset-color: var(--color-gray-100);
@@ -182,23 +202,23 @@ html[data-theme='light'] .text-indigo-200 {
 	color: var(--color-indigo-700);
 }
 html[data-theme='light'] .text-emerald-400 {
-	color: var(--color-emerald-600);
+	color: var(--color-emerald-700);
 }
 html[data-theme='light'] .text-emerald-500 {
 	color: var(--color-emerald-700);
 }
 html[data-theme='light'] .text-red-300 {
-	color: var(--color-red-600);
+	color: var(--color-red-700);
 }
 html[data-theme='light'] .text-red-400 {
-	color: var(--color-red-600);
+	color: var(--color-red-700);
 }
 html[data-theme='light'] .text-red-500 {
 	color: var(--color-red-700);
 }
 html[data-theme='light'] .text-amber-300 {
-	color: var(--color-amber-600);
+	color: var(--color-amber-700);
 }
 html[data-theme='light'] .text-amber-400 {
-	color: var(--color-amber-600);
+	color: var(--color-amber-700);
 }

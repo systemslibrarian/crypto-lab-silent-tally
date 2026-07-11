@@ -3,6 +3,9 @@ dist/
 pkg/
 target/
 coverage/
+test-results/
+playwright-report/
+.pw-browsers/
 *.swp
 *.swo
 .DS_Store

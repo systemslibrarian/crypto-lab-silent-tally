@@ -32,7 +32,7 @@ export function renderExhibit1(container: HTMLElement, _state: AppState): void {
           <div class="bg-gray-900 rounded-lg p-4 border border-gray-700 text-center" role="listitem">
             <div class="text-2xl mb-2" aria-hidden="true">🏥</div>
             <div class="text-sm font-medium text-white leading-tight">${h.name}</div>
-            <div class="mt-2 flex items-center justify-center gap-1 text-gray-500 text-xs">
+            <div class="mt-2 flex items-center justify-center gap-1 text-gray-400 text-xs">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -68,7 +68,7 @@ export function renderExhibit1(container: HTMLElement, _state: AppState): void {
             <line x1="80" y1="30" x2="220" y2="170" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>
             <line x1="220" y1="30" x2="80" y2="170" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>
           </svg>
-          <p class="text-xs text-gray-500 mt-3 text-center">Server learns all private inputs. Single point of failure.</p>
+          <p class="text-xs text-gray-400 mt-3 text-center">Server learns all private inputs. Single point of failure.</p>
         </div>
 
         <!-- MPC approach -->
@@ -92,7 +92,7 @@ export function renderExhibit1(container: HTMLElement, _state: AppState): void {
             <text x="150" y="115" text-anchor="middle" fill="#6ee7b7" font-size="14" font-weight="bold">Σ = total</text>
             <text x="150" y="132" text-anchor="middle" fill="#6b7280" font-size="9">only the sum revealed</text>
           </svg>
-          <p class="text-xs text-gray-500 mt-3 text-center">No central server. Only the aggregate is revealed.</p>
+          <p class="text-xs text-gray-400 mt-3 text-center">No central server. Only the aggregate is revealed.</p>
         </div>
       </div>
 

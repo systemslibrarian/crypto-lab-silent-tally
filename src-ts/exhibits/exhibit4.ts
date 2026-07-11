@@ -80,7 +80,7 @@ export function renderExhibit4(container: HTMLElement, state: AppState): void {
                 ${row.map(cell => `
                   <td class="text-center p-2 border-b border-gray-800/50 ${cell.isSelf ? 'bg-indigo-950/30 text-indigo-400' : 'text-emerald-400'}">
                     ${formatBigint(cell.value)}
-                    ${cell.isSelf ? '<span class="block text-[9px] text-indigo-500">self</span>' : ''}
+                    ${cell.isSelf ? '<span class="block text-[9px] text-indigo-300">self</span>' : ''}
                   </td>
                 `).join('')}
               </tr>
