@@ -41,6 +41,28 @@ html:not([data-theme='light']) :is(#main-content, nav, footer, #loading-overlay)
 	color: var(--color-gray-400);
 }
 
+/* BEGIN cl-hero standard — managed, keep in sync across fleet */
+/* This demo has no --text/--text-dim/--accent/--border vars (Tailwind v4
+   theme), so map to its palette: gray-100 title, gray-400 desc, gray-800
+   border, indigo accent tint. Light-theme overrides below keep AA contrast. */
+.cl-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:clamp(1rem,4vw,3rem);flex-wrap:wrap;margin:clamp(1rem,3vw,2rem) 0 1.5rem;}
+.cl-hero-main{flex:1 1 22rem;min-width:min(100%,20rem);}
+.cl-hero-title{margin:0;font-size:clamp(1.6rem,3.8vw,2.7rem);font-weight:700;line-height:1.1;letter-spacing:.01em;color:var(--color-white);}
+.cl-hero-sub{margin:.4rem 0 0;font-size:clamp(.9rem,1.6vw,1.05rem);letter-spacing:.01em;opacity:.85;color:var(--color-gray-300);}
+.cl-hero-desc{margin:.55rem 0 0;font-size:1rem;line-height:1.5;color:var(--color-gray-400);max-width:60ch;}
+.cl-hero-why{flex:0 1 min(40%,26rem);min-width:min(100%,15rem);border:1px solid var(--color-gray-800);border-radius:10px;padding:.85rem 1.05rem;background:color-mix(in oklab,var(--color-indigo-500) 10%,transparent);}
+.cl-hero-why-label{display:block;font-size:.68rem;font-weight:700;letter-spacing:.14em;color:var(--color-indigo-300);}
+.cl-hero-why-text{margin:.35rem 0 0;font-size:.95rem;line-height:1.5;color:var(--color-gray-300);}
+@media (max-width:640px){.cl-hero{flex-direction:column;}.cl-hero-why{flex-basis:auto;width:100%;}}
+
+html[data-theme='light'] .cl-hero-title{color:var(--color-gray-900);}
+html[data-theme='light'] .cl-hero-sub{color:var(--color-gray-600);}
+html[data-theme='light'] .cl-hero-desc{color:var(--color-gray-600);}
+html[data-theme='light'] .cl-hero-why{border-color:var(--color-indigo-200);background:var(--color-indigo-50);}
+html[data-theme='light'] .cl-hero-why-label{color:var(--color-indigo-700);}
+html[data-theme='light'] .cl-hero-why-text{color:var(--color-gray-700);}
+/* END cl-hero standard */
+
 .theme-toggle {
 	flex: none;
 	width: 2.75rem;

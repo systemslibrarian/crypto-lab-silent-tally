@@ -136,15 +136,22 @@
   </a>
 
   <!-- Header -->
-  <header class="border-b border-gray-800 px-4 sm:px-6 py-4" role="banner">
-    <div class="max-w-5xl mx-auto flex items-center justify-between gap-3">
-      <div class="min-w-0">
-        <h1 class="text-xl font-bold tracking-tight text-white">silent-tally</h1>
-        <p class="text-sm text-gray-400">Shamir-Based MPC · Clinical Trial Demo</p>
-      </div>
-      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+  <header class="border-b border-gray-800 px-4 sm:px-6 py-4">
+    <div class="max-w-5xl mx-auto">
+      <div class="flex items-start justify-end gap-2 sm:gap-3">
         <div id="progress" class="text-xs sm:text-sm text-gray-400 font-mono" aria-live="polite" aria-atomic="true"></div>
         <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to light mode">🌙</button>
+      </div>
+      <div class="cl-hero">
+        <div class="cl-hero-main">
+          <h1 class="cl-hero-title">Silent Tally</h1>
+          <p class="cl-hero-sub">Secure MPC · Shamir Secret Sharing · t=3-of-5 threshold</p>
+          <p class="cl-hero-desc">Five hospitals split each private enrollment count into Shamir shares, add the shares locally, and Lagrange-interpolate only the combined trial total — no individual count ever leaves its owner.</p>
+        </div>
+        <aside class="cl-hero-why" aria-label="Why it matters">
+          <span class="cl-hero-why-label">WHY IT MATTERS</span>
+          <p class="cl-hero-why-text">Institutions must pool sensitive data — patient counts, salaries, votes — without a trusted aggregator that could leak or abuse it. Additively-homomorphic secret sharing lets a group learn the sum while every input stays hidden, even if attackers collude below the threshold.</p>
+        </aside>
       </div>
     </div>
   </header>
