@@ -93,12 +93,26 @@ it received:
 $$T_j = \sum_i f_i(j)$$
 
 The set $\{T_1, \dots, T_5\}$ is itself a valid Shamir sharing of
-$\sum_i s_i$. Any $t = 3$ of those local sums reconstruct the grand total via
-Lagrange interpolation at $x = 0$ — and **nothing else** is ever revealed.
+$\sum_i s_i$, because polynomial evaluation is linear:
+$(f_1 + \dots + f_5)(j) = T_j$ and $(f_1 + \dots + f_5)(0) = \sum_i s_i$.
+Exhibit 5 makes this concrete — it lines up the five summed shares at any
+$x = k$ against the summed secrets, so you can *see* that $T_k$ is a share of the
+total rather than take it on faith. Any $t = 3$ of those local sums reconstruct
+the grand total via Lagrange interpolation at $x = 0$ — and **nothing else** is
+ever revealed. A live 3-of-5 chooser lets you confirm every valid subset yields
+the same total, while any 2 leave it undetermined.
 
 With only $t - 1 = 2$ shares, the secret is information-theoretically hidden:
 infinitely many degree-2 polynomials pass through any two points, each implying a
 different $f(0)$. Exhibit 6 draws these curves for real.
+
+Because the live shares are ~19-digit elements of $\mathrm{GF}(2^{61}-1)$ that
+plot as meaningless noise on a linear axis, Exhibit 3 illustrates the *shape* of
+a degree-2 sharing over a toy prime $p = 97$ (secret $s = 8$,
+$f(x) = 8 + 2x + x^2$), where the five share points sit exactly on a visible
+parabola with $f(0)$ marked. This is the identical Shamir math shrunk for
+drawing — the running protocol still operates over $2^{61}-1$, and the toy
+illustration is unit-tested for correctness (`src-ts/toyfield.test.ts`).
 
 ## Architecture
 
@@ -129,9 +143,9 @@ The field math lives in two deliberately mirrored places:
 |---|---------|---------------|
 | 1 | The Problem | Why a central aggregator fails, and what MPC offers instead |
 | 2 | Private Input | Each hospital locks in its enrollment count locally |
-| 3 | Secret Sharing | Each secret split via a random degree-2 polynomial over GF(p) |
+| 3 | Secret Sharing | Each secret split via a random degree-2 polynomial over GF(p); a field wrap-around primer and an honest toy-field (p=97) parabola show what a real degree-2 sharing looks like |
 | 4 | Distribution | The 5×5 share matrix — who sends what to whom |
-| 5 | Computation & Reconstruction | Additive homomorphism + Lagrange recover **only** the total |
+| 5 | Computation & Reconstruction | Additive homomorphism made visible (adding shares at x=k *is* evaluating the summed polynomial), plus a 3-of-5 chooser proving every valid subset reconstructs the same total — and 2 cannot |
 | 6 | Coalition Attack | Two colluders provably learn nothing — drawn as real polynomials |
 
 ## Testing

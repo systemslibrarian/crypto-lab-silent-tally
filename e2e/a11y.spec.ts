@@ -99,10 +99,24 @@ async function walkAllExhibits(page: Page, theme: string): Promise<void> {
   await page.locator('#matrix-heading').waitFor();
   await scan(page, `${theme}/exhibit-4`);
 
-  // Exhibit 5 — reconstructed total.
+  // Exhibit 5 — reconstructed total. Drive the new interactive controls so
+  // their injected regions (homomorphism walk-through columns, and the
+  // reconstruction chooser's match / undetermined / redundant panels) are all
+  // scanned in both themes.
   await page.locator('#btn-next').click();
   await page.locator('#total-reveal').waitFor();
-  await scan(page, `${theme}/exhibit-5`);
+  await scan(page, `${theme}/exhibit-5-default`);
+  // Switch the homomorphism party column.
+  await page.locator('[data-hom-party="5"]').click();
+  await scan(page, `${theme}/exhibit-5-hom-party-5`);
+  // Deselect a chosen local sum -> "undetermined" (2 of 3) amber panel.
+  await page.locator('[data-recon-id="3"]').click();
+  await scan(page, `${theme}/exhibit-5-recon-undetermined`);
+  // Add two more -> more than 3 selected (redundant) panel.
+  await page.locator('[data-recon-id="3"]').click();
+  await page.locator('[data-recon-id="4"]').click();
+  await page.locator('[data-recon-id="5"]').click();
+  await scan(page, `${theme}/exhibit-5-recon-redundant`);
 
   // Exhibit 6 — coalition attack; drive the coalition buttons so the
   // dynamically-injected result region renders.
