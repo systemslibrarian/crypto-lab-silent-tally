@@ -286,7 +286,7 @@ function renderReconResult(state: AppState, expectedTotal: number): string {
           ${chosen.length === 0
             ? 'Pick 3 local sums to reconstruct the total.'
             : `With ${chosen.length} point${chosen.length === 1 ? '' : 's'} on a degree-2 sharing, the polynomial is
-               not pinned down: infinitely many curves fit, so f(0) could be anything. Add ${need} more.`}
+               not pinned down: one curve fits for every value in the field, so f(0) could be anything. Add ${need} more.`}
         </p>
       </div>`;
   }

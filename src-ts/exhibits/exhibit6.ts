@@ -97,8 +97,9 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
               </p>
               <p class="text-xs text-gray-400">
                 The colluders know f(${coalitionArr[0]}) and f(${coalitionArr[1]}). But a degree-2 polynomial
-                has 3 unknowns (a₀, a₁, a₂). With only 2 equations, infinitely many polynomials pass through
-                these points — each yielding a different secret f(0). The colluders cannot distinguish them.
+                has 3 unknowns (a₀, a₁, a₂). With only 2 equations, exactly one polynomial passes through
+                these points for <em>every</em> candidate secret f(0) — all 2⁶¹ − 1 of them, equally likely.
+                The colluders cannot distinguish them.
               </p>
             </div>
 

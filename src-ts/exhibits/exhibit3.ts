@@ -155,7 +155,8 @@ export function renderExhibit3(container: HTMLElement, state: AppState): void {
         <p class="text-xs text-gray-400 mt-2 text-center">
           A genuine parabola: the 5 green share points lie exactly on it, and the secret is
           <strong class="text-amber-400">f(0)</strong>. Any 3 of these points pin down the whole degree-2 curve —
-          so any 3 reconstruct the secret, while 2 leave infinitely many curves possible (you'll see that in Exhibit 6).
+          so any 3 reconstruct the secret, while 2 leave one possible curve for every secret in the field,
+          all equally likely (you'll see that in Exhibit 6).
         </p>
       </div>
 

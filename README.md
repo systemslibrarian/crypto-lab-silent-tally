@@ -102,9 +102,10 @@ the grand total via Lagrange interpolation at $x = 0$ — and **nothing else** i
 ever revealed. A live 3-of-5 chooser lets you confirm every valid subset yields
 the same total, while any 2 leave it undetermined.
 
-With only $t - 1 = 2$ shares, the secret is information-theoretically hidden:
-infinitely many degree-2 polynomials pass through any two points, each implying a
-different $f(0)$. Exhibit 6 draws these curves for real.
+With only $t - 1 = 2$ shares, the secret is information-theoretically hidden: for
+*every* candidate $f(0)$ in $\mathrm{GF}(p)$ there is exactly one degree-2
+polynomial through those two points, so all $p = 2^{61}-1$ secrets stay equally
+likely. Exhibit 6 draws a sample of these curves for real.
 
 Because the live shares are ~19-digit elements of $\mathrm{GF}(2^{61}-1)$ that
 plot as meaningless noise on a linear axis, Exhibit 3 illustrates the *shape* of
