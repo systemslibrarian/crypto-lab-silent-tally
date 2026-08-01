@@ -34,7 +34,10 @@ export function renderExhibit3(container: HTMLElement, state: AppState): void {
             <span class="text-xs font-mono text-gray-500">Hospital ${h.id}</span>
             <div class="text-sm font-medium text-white">${h.name}</div>
           </div>
-          <span class="text-xs font-mono text-amber-400">secret = ${h.count}</span>
+          <span class="text-xs font-mono text-amber-400" title="Lab control — not visible to any party in the protocol">
+            secret = ${h.count}
+            <span class="text-[10px] text-gray-500">(omniscient view)</span>
+          </span>
         </div>
         <div class="p-4 space-y-3">
           <div class="font-mono text-xs text-gray-400">
@@ -123,7 +126,7 @@ export function renderExhibit3(container: HTMLElement, state: AppState): void {
           <code class="text-indigo-400">f(x) = ${toySecret} + 2x + x²</code>. Over the real 2⁶¹ − 1 field the same
           five points exist — they just land in random-looking spots you can't plot on a line.
         </p>
-        <svg viewBox="0 0 400 200" class="w-full max-w-lg mx-auto" role="img" aria-label="A smooth degree-2 parabola f(x) = 8 + 2x + x squared over the toy field p equals 97, with the five share points f(1) through f(5) sitting exactly on the curve and the secret f(0) equals 8 marked on the vertical axis. Three points are enough to pin down the whole parabola.">
+        <svg viewBox="0 0 400 200" class="w-full max-w-lg mx-auto" role="img" aria-label="The parabola f(x) = 8 + 2x + x squared drawn over the real numbers, with the five GF(97) share points f(1) through f(5) plotted on top of it. They sit exactly on the curve only because f(1) through f(5) are all below 97, so nothing wraps; the secret f(0) equals 8 is marked on the vertical axis. Three points are enough to pin down the whole parabola.">
           <!-- Axes -->
           <line x1="55" y1="175" x2="380" y2="175" stroke="#374151" stroke-width="1"/>
           <line x1="55" y1="175" x2="55" y2="20" stroke="#374151" stroke-width="1"/>
@@ -155,14 +158,30 @@ export function renderExhibit3(container: HTMLElement, state: AppState): void {
         <p class="text-xs text-gray-400 mt-2 text-center">
           A genuine parabola: the 5 green share points lie exactly on it, and the secret is
           <strong class="text-amber-400">f(0)</strong>. Any 3 of these points pin down the whole degree-2 curve —
-          so any 3 reconstruct the secret, while 2 leave one possible curve for every secret in the field,
-          all equally likely (you'll see that in Exhibit 6).
+          so any 3 reconstruct the secret, while 2 leave one possible curve for every secret in the field
+          (you'll play that out for real in Exhibit 6).
+        </p>
+        <p class="text-xs text-amber-400/90 leading-relaxed mt-3 bg-amber-950/20 border border-amber-900/40 rounded-lg p-3">
+          <strong class="text-amber-300">The smoothness is a coincidence of the numbers, not a property of the field.</strong>
+          The curve above is f(x) = ${toySecret} + 2x + x² plotted over the <em>reals</em>. The GF(${TOY_P}) share values
+          land on it exactly only because f(1) … f(5) = ${toy.shares.join(', ')} all happen to stay below
+          ${TOY_P} — nothing wraps, so mod ${TOY_P} does nothing here. Push the secret or the coefficients up and the
+          points start wrapping past ${TOY_P} and scatter off the curve, which is precisely what the real 2⁶¹ − 1
+          shares do. A finite field has no notion of "smooth"; the picture is a teaching aid for the algebra of degree,
+          not a portrait of GF(${TOY_P}).
         </p>
       </div>
 
       <!-- All hospital share tables -->
       <div class="space-y-4">
         <h3 class="text-sm font-semibold text-gray-300">Share tables — all 5 hospitals (25 shares total)</h3>
+        <p class="text-xs text-amber-400/90 leading-relaxed bg-amber-950/20 border border-amber-900/40 rounded-lg p-3">
+          <strong class="text-amber-300">Omniscient view.</strong> Each card prints its hospital's plaintext count and
+          the polynomial's constant term beside the shares. <em>No party in the protocol can see that column</em> —
+          you can only see it because you are outside the protocol, holding the dealer's notes. Each hospital knows
+          its own count and the 5 shares it was handed; nobody else learns either. Exhibit 6 lets you play the
+          attacker with only the share values, which is the view that actually matters.
+        </p>
         ${hospitalSections}
       </div>
     </div>

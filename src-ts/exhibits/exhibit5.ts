@@ -114,7 +114,10 @@ export function renderExhibit5(container: HTMLElement, state: AppState): void {
 
           <!-- Right: the secrets add to the total (same structure) -->
           <div class="bg-gray-950 rounded-lg p-4 border border-gray-800">
-            <div class="text-xs text-gray-400 mb-2 font-medium">The hidden secrets, summed:</div>
+            <div class="text-xs text-amber-400 mb-2 font-medium">
+              The hidden secrets, summed
+              <span class="text-gray-500 font-normal">— omniscient view, no party sees this column</span>
+            </div>
             <div class="font-mono text-xs space-y-1">
               ${state.hospitals.map(h => `
                 <div class="flex items-center justify-between gap-2">
@@ -129,6 +132,15 @@ export function renderExhibit5(container: HTMLElement, state: AppState): void {
             </div>
           </div>
         </div>
+
+        <p class="text-xs text-amber-400/90 leading-relaxed bg-amber-950/20 border border-amber-900/40 rounded-lg p-3">
+          <strong class="text-amber-300">Read the two columns asymmetrically.</strong> The left one is real protocol
+          data — every party genuinely holds those five share values and genuinely computes that sum. The right one is
+          the <em>omniscient view</em>: the individual counts s₁ … s₅ exist nowhere in the protocol, are never
+          transmitted, and are shown only because you are outside it holding the dealer's notes. The demo prints them
+          so you can check the arithmetic; a participant checking the same identity would see the left column and the
+          final total, and nothing in between.
+        </p>
 
         <p class="text-xs text-gray-400 leading-relaxed">
           The left column is <strong class="text-emerald-400">(f₁+⋯+f₅)(${ui.homParty})</strong>; the right column is
@@ -225,7 +237,10 @@ export function renderExhibit5(container: HTMLElement, state: AppState): void {
 
       <!-- Cross-check -->
       <div class="bg-gray-900 rounded-xl p-5 border border-gray-800">
-        <h3 class="text-sm font-semibold text-gray-300 mb-3">Cross-check verification</h3>
+        <h3 class="text-sm font-semibold text-gray-300 mb-3">
+          Cross-check verification
+          <span class="text-xs font-normal text-gray-500">— the direct sum below is the omniscient view; no party can compute it</span>
+        </h3>
         <div class="font-mono text-xs space-y-1 overflow-x-auto">
           <p class="text-gray-400">
             Direct sum: ${state.hospitals.map(h => h.count.toLocaleString()).join(' + ')} =

@@ -119,7 +119,9 @@ async function walkAllExhibits(page: Page, theme: string): Promise<void> {
   await scan(page, `${theme}/exhibit-5-recon-redundant`);
 
   // Exhibit 6 — coalition attack; drive the coalition buttons so the
-  // dynamically-injected result region renders.
+  // dynamically-injected result region renders. Both verdict branches are
+  // scanned: sub-threshold (2 colluders, the "coalition fails" panel plus the
+  // multi-curve SVG) and at-threshold (3, the "guarantee broken" panel).
   await page.locator('#btn-next').click();
   await page.locator('#coalition-cards').waitFor();
   const coalition = page.locator('[data-coalition-id]');
@@ -128,6 +130,10 @@ async function walkAllExhibits(page: Page, theme: string): Promise<void> {
     await coalition.nth(i).click();
   }
   await scan(page, `${theme}/exhibit-6`);
+  if (n >= 3) {
+    await coalition.nth(2).click();
+    await scan(page, `${theme}/exhibit-6-threshold-reached`);
+  }
 }
 
 test('no WCAG A/AA violations across all exhibits — dark theme', async ({ page }) => {

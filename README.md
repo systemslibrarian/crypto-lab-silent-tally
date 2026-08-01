@@ -147,7 +147,7 @@ The field math lives in two deliberately mirrored places:
 | 3 | Secret Sharing | Each secret split via a random degree-2 polynomial over GF(p); a field wrap-around primer and an honest toy-field (p=97) parabola show what a real degree-2 sharing looks like |
 | 4 | Distribution | The 5×5 share matrix — who sends what to whom |
 | 5 | Computation & Reconstruction | Additive homomorphism made visible (adding shares at x=k *is* evaluating the summed polynomial), plus a 3-of-5 chooser proving every valid subset reconstructs the same total — and 2 cannot |
-| 6 | Coalition Attack | Two colluders provably learn nothing — drawn as real polynomials |
+| 6 | Coalition Attack | Build a coalition of 1–4 hospitals and Lagrange-interpolate their *actual* shares of a victim's polynomial. Below t = 3 the reconstruction misses (and the alternatives are drawn as real polynomials); at t = 3 it lands on the victim's count to the digit. Every verdict is read off that reconstruction, never off the coalition size |
 
 ## Testing
 
