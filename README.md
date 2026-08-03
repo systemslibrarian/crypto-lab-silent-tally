@@ -70,7 +70,27 @@ git clone https://github.com/systemslibrarian/crypto-lab-silent-tally
 cd crypto-lab-silent-tally
 npm install
 npm run dev
+npm test           # GF(p) / Shamir unit tests
+npm run test:e2e   # Playwright: functional claims + WCAG 2.1 AA gate
 ```
+
+`npm run test:e2e` (and `test:a11y`, the same run) builds first and serves the
+production bundle, so what is driven is what ships.
+
+**Functional browser gate:** `e2e/claims.spec.ts` walks all six exhibits and asserts the
+numbers each one puts on screen — checked against each other, not against constants. The
+reconstructed total must equal the enrollments actually entered, and the cross-check panel
+must add them up the same way; every party's local sum expansion must be exactly the
+share-matrix column it claims to be summing, and the homomorphism walk-through must show
+that same column and land on that same $T_k$; every 3-subset of local sums must reconstruct
+the identical total, while two must leave it undetermined and four must be called
+redundant; and the coalition's verdict must follow the number its own Lagrange run
+produced — below $t = 3$ the reconstruction must genuinely miss the victim's count and
+above it must hit it to the digit, for the counts the learner entered rather than the
+seeded ones. Every failure path is asserted to reach its state *and* name its cause:
+out-of-range enrollments that cannot be locked, the gated Next button, the sub-threshold
+reconstruction, and the coalition cap that keeps the victim outside. Uncaught page
+exceptions fail the run.
 
 ## Related Demos
 
