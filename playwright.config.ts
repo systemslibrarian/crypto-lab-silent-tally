@@ -22,7 +22,11 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npm run preview -- --port ${PORT} --strictPort`,
+    // Build before serving. preview serves dist/, so without this a run tests
+    // whatever bundle is on disk — and a FAILED build leaves the last good one
+    // in place, passing green against source that no longer compiles. That is
+    // exactly how the Exhibit 6 contrast regression shipped unnoticed.
+    command: `npm run build && npm run preview -- --port ${PORT} --strictPort`,
     port: PORT,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

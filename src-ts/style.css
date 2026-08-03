@@ -36,8 +36,10 @@ nav {
    app's dark gray-900/gray-950 surfaces, below the 4.5:1 AA threshold. Lift it
    to gray-400 in dark mode. Scoped to the page body (main content, nav, footer,
    loading overlay) so the always-dark shared header's own colours are untouched.
-   The light theme keeps its dedicated `.text-gray-500` remap (higher specificity). */
-html:not([data-theme='light']) :is(#main-content, nav, footer, #loading-overlay) .text-gray-500 {
+   The light theme keeps its dedicated `.text-gray-500` remap (higher specificity).
+   gray-600 (#4b5563) is darker still and fails the same way — Exhibit 6 uses it
+   for its omniscient-view aside — so it is lifted here too. */
+html:not([data-theme='light']) :is(#main-content, nav, footer, #loading-overlay) :is(.text-gray-500, .text-gray-600) {
 	color: var(--color-gray-400);
 }
 
@@ -240,11 +242,18 @@ html[data-theme='light'] .text-red-500 {
 html[data-theme='light'] .text-amber-300 {
 	color: var(--color-amber-700);
 }
-html[data-theme='light'] .text-amber-400 {
+html[data-theme='light'] :is(.text-amber-400, .text-amber-400\/90) {
 	/* amber-800, not amber-700: amber-700 (#b45309) only reaches ~4.49:1 on the
 	   indigo-50 tinted panel background (exhibit 5 homomorphism summary), just
-	   under AA. amber-800 clears every light surface (>=6:1). */
+	   under AA. amber-800 clears every light surface (>=6:1).
+	   The /90 opacity variant is a SEPARATE class and was not covered here, so
+	   Exhibit 3's two caution notes kept the dark-theme amber in light mode. */
 	color: var(--color-amber-800);
+}
+html[data-theme='light'] .bg-amber-950\/20 {
+	/* In light mode a 20%-opacity near-black amber reads as muddy grey-brown and
+	   drags everything sitting on it under AA. Use the palette's own light tint. */
+	background-color: var(--color-amber-50);
 }
 
 
