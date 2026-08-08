@@ -50,7 +50,15 @@ export function renderExhibit3(container: HTMLElement, state: AppState): void {
             ${data.shares.map((s, i) => `
               <div class="bg-gray-950 rounded p-2 text-center" role="listitem">
                 <div class="text-[10px] text-gray-400 font-mono">f(${i + 1})</div>
-                <div class="text-xs text-emerald-400 font-mono break-all" aria-label="Share f(${i + 1}) value">${formatBigint(s)}</div>
+                <!-- No aria-label here. It was PROHIBITED (a plain div is
+                     role=generic, so browsers discard the name and axe files it
+                     under "incomplete", never as a violation) and it was
+                     redundant besides: the visible "f(N)" above already says
+                     which share this is. Had it been honoured it would have been
+                     actively harmful, replacing the share value with the words
+                     "Share f(N) value". The listitem reads f(N) then the
+                     abbreviated value. -->
+                <div class="text-xs text-emerald-400 font-mono break-all">${formatBigint(s)}</div>
               </div>
             `).join('')}
           </div>
@@ -128,10 +136,10 @@ export function renderExhibit3(container: HTMLElement, state: AppState): void {
         </p>
         <svg viewBox="0 0 400 200" class="w-full max-w-lg mx-auto" role="img" aria-label="The parabola f(x) = 8 + 2x + x squared drawn over the real numbers, with the five GF(97) share points f(1) through f(5) plotted on top of it. They sit exactly on the curve only because f(1) through f(5) are all below 97, so nothing wraps; the secret f(0) equals 8 is marked on the vertical axis. Three points are enough to pin down the whole parabola.">
           <!-- Axes -->
-          <line x1="55" y1="175" x2="380" y2="175" stroke="#374151" stroke-width="1"/>
-          <line x1="55" y1="175" x2="55" y2="20" stroke="#374151" stroke-width="1"/>
-          <text x="215" y="195" text-anchor="middle" fill="#9ca3af" font-size="10">x (party index)</text>
-          <text x="18" y="100" text-anchor="middle" fill="#9ca3af" font-size="10" transform="rotate(-90 18 100)">f(x) mod ${TOY_P}</text>
+          <line class="svg-axis" x1="55" y1="175" x2="380" y2="175" stroke-width="1"/>
+          <line class="svg-axis" x1="55" y1="175" x2="55" y2="20" stroke-width="1"/>
+          <text class="svg-text-muted" x="215" y="195" text-anchor="middle" font-size="10">x (party index)</text>
+          <text class="svg-text-muted" x="18" y="100" text-anchor="middle" font-size="10" transform="rotate(-90 18 100)">f(x) mod ${TOY_P}</text>
           <!-- Smooth parabola through the reals 0..5 -->
           ${(() => {
             const pts: string[] = [];
@@ -139,7 +147,7 @@ export function renderExhibit3(container: HTMLElement, state: AppState): void {
               const x = (s / 100) * 5;
               pts.push(`${sx(x).toFixed(1)},${sy(realAt(x)).toFixed(1)}`);
             }
-            return `<polyline points="${pts.join(' ')}" fill="none" stroke="#818cf8" stroke-width="2"/>`;
+            return `<polyline class="svg-curve" points="${pts.join(' ')}" fill="none" stroke-width="2"/>`;
           })()}
           <!-- Share points f(1..5) sitting exactly on the curve -->
           ${toy.shares.map((s, i) => {
@@ -147,13 +155,13 @@ export function renderExhibit3(container: HTMLElement, state: AppState): void {
             const px = sx(x);
             const py = sy(realAt(x));
             return `
-              <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="4.5" fill="#34d399" stroke="#065f46" stroke-width="1.5"/>
-              <text x="${px.toFixed(1)}" y="${(py - 9).toFixed(1)}" text-anchor="middle" fill="#6ee7b7" font-size="9">f(${x})=${s}</text>
+              <circle class="svg-point" cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="4.5" stroke-width="1.5"/>
+              <text class="svg-point-label" x="${px.toFixed(1)}" y="${(py - 9).toFixed(1)}" text-anchor="middle" font-size="9">f(${x})=${s}</text>
             `;
           }).join('')}
           <!-- f(0) = secret, revealed on the toy axis (the real one stays hidden) -->
-          <circle cx="55" cy="${sy(Number(toySecret)).toFixed(1)}" r="6" fill="#f59e0b" stroke="#78350f" stroke-width="1.5"/>
-          <text x="63" y="${(sy(Number(toySecret)) - 8).toFixed(1)}" fill="#fbbf24" font-size="10">f(0) = ${toySecret} (secret)</text>
+          <circle class="svg-secret" cx="55" cy="${sy(Number(toySecret)).toFixed(1)}" r="6" stroke-width="1.5"/>
+          <text class="svg-secret-label" x="63" y="${(sy(Number(toySecret)) - 8).toFixed(1)}" font-size="10">f(0) = ${toySecret} (secret)</text>
         </svg>
         <p class="text-xs text-gray-400 mt-2 text-center">
           A genuine parabola: the 5 green share points lie exactly on it, and the secret is

@@ -51,22 +51,22 @@ export function renderExhibit1(container: HTMLElement, _state: AppState): void {
           <h3 class="text-sm font-semibold text-red-400 mb-4">Naive: Central Server</h3>
           <svg viewBox="0 0 300 200" class="w-full max-w-xs mx-auto opacity-50" role="img" aria-label="Diagram showing five hospitals sending data to a central server, crossed out as insecure">
             <!-- Hospital nodes -->
-            <circle cx="60" cy="40" r="16" fill="#374151" stroke="#6b7280" stroke-width="1.5"/>
-            <circle cx="240" cy="40" r="16" fill="#374151" stroke="#6b7280" stroke-width="1.5"/>
-            <circle cx="60" cy="160" r="16" fill="#374151" stroke="#6b7280" stroke-width="1.5"/>
-            <circle cx="240" cy="160" r="16" fill="#374151" stroke="#6b7280" stroke-width="1.5"/>
-            <circle cx="150" cy="160" r="16" fill="#374151" stroke="#6b7280" stroke-width="1.5"/>
+            <circle class="svg-node-plain" cx="60" cy="40" r="16" stroke-width="1.5"/>
+            <circle class="svg-node-plain" cx="240" cy="40" r="16" stroke-width="1.5"/>
+            <circle class="svg-node-plain" cx="60" cy="160" r="16" stroke-width="1.5"/>
+            <circle class="svg-node-plain" cx="240" cy="160" r="16" stroke-width="1.5"/>
+            <circle class="svg-node-plain" cx="150" cy="160" r="16" stroke-width="1.5"/>
             <!-- Central server -->
-            <rect x="125" y="75" width="50" height="40" rx="6" fill="#374151" stroke="#6b7280" stroke-width="1.5"/>
+            <rect class="svg-node-plain" x="125" y="75" width="50" height="40" rx="6" stroke-width="1.5"/>
             <!-- Lines to server -->
-            <line x1="60" y1="56" x2="135" y2="80" stroke="#6b7280" stroke-width="1" stroke-dasharray="4"/>
-            <line x1="240" y1="56" x2="165" y2="80" stroke="#6b7280" stroke-width="1" stroke-dasharray="4"/>
-            <line x1="60" y1="144" x2="135" y2="110" stroke="#6b7280" stroke-width="1" stroke-dasharray="4"/>
-            <line x1="240" y1="144" x2="165" y2="110" stroke="#6b7280" stroke-width="1" stroke-dasharray="4"/>
-            <line x1="150" y1="144" x2="150" y2="115" stroke="#6b7280" stroke-width="1" stroke-dasharray="4"/>
+            <line class="svg-link" x1="60" y1="56" x2="135" y2="80" stroke-width="1" stroke-dasharray="4"/>
+            <line class="svg-link" x1="240" y1="56" x2="165" y2="80" stroke-width="1" stroke-dasharray="4"/>
+            <line class="svg-link" x1="60" y1="144" x2="135" y2="110" stroke-width="1" stroke-dasharray="4"/>
+            <line class="svg-link" x1="240" y1="144" x2="165" y2="110" stroke-width="1" stroke-dasharray="4"/>
+            <line class="svg-link" x1="150" y1="144" x2="150" y2="115" stroke-width="1" stroke-dasharray="4"/>
             <!-- Big red X -->
-            <line x1="80" y1="30" x2="220" y2="170" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>
-            <line x1="220" y1="30" x2="80" y2="170" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>
+            <line class="svg-cross" x1="80" y1="30" x2="220" y2="170" stroke-width="4" stroke-linecap="round"/>
+            <line class="svg-cross" x1="220" y1="30" x2="80" y2="170" stroke-width="4" stroke-linecap="round"/>
           </svg>
           <p class="text-xs text-gray-400 mt-3 text-center">Server learns all private inputs. Single point of failure.</p>
         </div>
@@ -75,22 +75,28 @@ export function renderExhibit1(container: HTMLElement, _state: AppState): void {
         <div class="bg-gray-900 rounded-xl p-6 border border-emerald-900/40 relative">
           <div class="absolute top-3 right-3 text-emerald-500 text-xs font-bold uppercase tracking-wider">✓ Secure</div>
           <h3 class="text-sm font-semibold text-emerald-400 mb-4">MPC: Shamir Secret Sharing</h3>
+          <!-- The fills and strokes below are CLASSED, not hardcoded hexes. SVG
+               takes its ink from fill/stroke, which the light-theme .text-*
+               remaps in style.css cannot reach, so the original dark-palette
+               literals rendered unchanged on the light card: emerald-300 text
+               on white at 1.52:1, and the whole ring at 1.52:1 against WCAG
+               1.4.11's 3:1 floor. -->
           <svg viewBox="0 0 300 200" class="w-full max-w-xs mx-auto" role="img" aria-label="Diagram showing five hospitals connected peer-to-peer via MPC, computing only the total sum">
             <!-- Hospital nodes in a ring -->
-            <circle cx="150" cy="30" r="16" fill="#374151" stroke="#6ee7b7" stroke-width="1.5"/>
-            <circle cx="264" cy="80" r="16" fill="#374151" stroke="#6ee7b7" stroke-width="1.5"/>
-            <circle cx="220" cy="175" r="16" fill="#374151" stroke="#6ee7b7" stroke-width="1.5"/>
-            <circle cx="80" cy="175" r="16" fill="#374151" stroke="#6ee7b7" stroke-width="1.5"/>
-            <circle cx="36" cy="80" r="16" fill="#374151" stroke="#6ee7b7" stroke-width="1.5"/>
+            <circle class="svg-node" cx="150" cy="30" r="16" stroke-width="1.5"/>
+            <circle class="svg-node" cx="264" cy="80" r="16" stroke-width="1.5"/>
+            <circle class="svg-node" cx="220" cy="175" r="16" stroke-width="1.5"/>
+            <circle class="svg-node" cx="80" cy="175" r="16" stroke-width="1.5"/>
+            <circle class="svg-node" cx="36" cy="80" r="16" stroke-width="1.5"/>
             <!-- Peer-to-peer connections -->
-            <line x1="150" y1="46" x2="248" y2="72" stroke="#6ee7b7" stroke-width="1" opacity="0.4"/>
-            <line x1="264" y1="96" x2="228" y2="162" stroke="#6ee7b7" stroke-width="1" opacity="0.4"/>
-            <line x1="204" y1="175" x2="96" y2="175" stroke="#6ee7b7" stroke-width="1" opacity="0.4"/>
-            <line x1="72" y1="162" x2="36" y2="96" stroke="#6ee7b7" stroke-width="1" opacity="0.4"/>
-            <line x1="44" y1="68" x2="138" y2="34" stroke="#6ee7b7" stroke-width="1" opacity="0.4"/>
+            <line class="svg-mesh" x1="150" y1="46" x2="248" y2="72" stroke-width="1"/>
+            <line class="svg-mesh" x1="264" y1="96" x2="228" y2="162" stroke-width="1"/>
+            <line class="svg-mesh" x1="204" y1="175" x2="96" y2="175" stroke-width="1"/>
+            <line class="svg-mesh" x1="72" y1="162" x2="36" y2="96" stroke-width="1"/>
+            <line class="svg-mesh" x1="44" y1="68" x2="138" y2="34" stroke-width="1"/>
             <!-- Result in center -->
-            <text x="150" y="115" text-anchor="middle" fill="#6ee7b7" font-size="14" font-weight="bold">Σ = total</text>
-            <text x="150" y="132" text-anchor="middle" fill="#6b7280" font-size="9">only the sum revealed</text>
+            <text class="svg-point-label" x="150" y="115" text-anchor="middle" font-size="14" font-weight="bold">Σ = total</text>
+            <text class="svg-text-muted" x="150" y="132" text-anchor="middle" font-size="9">only the sum revealed</text>
           </svg>
           <p class="text-xs text-gray-400 mt-3 text-center">No central server. Only the aggregate is revealed.</p>
         </div>

@@ -213,22 +213,22 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
 
                 const knownPoints = coalitionShares.map((cs, i) => {
                   const yv = i === 0 ? y1 : y2;
-                  return `<circle cx="${px(cs.partyId).toFixed(1)}" cy="${py(yv).toFixed(1)}" r="5" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/>
-                    <text x="${px(cs.partyId).toFixed(1)}" y="${(py(yv) - 9).toFixed(1)}" text-anchor="middle" fill="#fca5a5" font-size="8">f(${cs.partyId}) known</text>`;
+                  return `<circle class="svg-danger" cx="${px(cs.partyId).toFixed(1)}" cy="${py(yv).toFixed(1)}" r="5" stroke-width="1.5"/>
+                    <text class="svg-danger-label" x="${px(cs.partyId).toFixed(1)}" y="${(py(yv) - 9).toFixed(1)}" text-anchor="middle" font-size="8">f(${cs.partyId}) known</text>`;
                 }).join('');
 
                 return `
                 <svg viewBox="0 0 400 200" class="w-full max-w-lg mx-auto" role="img" aria-label="Six polynomial curves each passing through the coalition's two known share points but crossing the f(0) axis at six different heights, showing that every secret is equally consistent with two shares">
                   <!-- Axes -->
-                  <line x1="50" y1="170" x2="380" y2="170" stroke="#374151" stroke-width="1"/>
-                  <line x1="50" y1="170" x2="50" y2="20" stroke="#374151" stroke-width="1"/>
-                  <text x="215" y="193" text-anchor="middle" fill="#6b7280" font-size="10">x (party index)</text>
+                  <line class="svg-axis" x1="50" y1="170" x2="380" y2="170" stroke-width="1"/>
+                  <line class="svg-axis" x1="50" y1="170" x2="50" y2="20" stroke-width="1"/>
+                  <text class="svg-text-muted" x="215" y="193" text-anchor="middle" font-size="10">x (party index)</text>
                   <!-- f(0) axis highlight: every curve crosses here at a different point -->
-                  <rect x="46" y="22" width="8" height="148" fill="#ef4444" opacity="0.12" rx="3"/>
-                  <text x="50" y="16" text-anchor="middle" fill="#ef4444" font-size="8">f(0) = ?</text>
+                  <rect class="svg-danger-mark" x="46" y="22" width="8" height="148" opacity="0.12" rx="3"/>
+                  <text class="svg-danger-label" x="50" y="16" text-anchor="middle" font-size="8">f(0) = ?</text>
                   ${curves}
                   ${knownPoints}
-                  <text x="380" y="16" text-anchor="end" fill="#6b7280" font-size="7">6 curves · 1 pair of points · 6 different secrets</text>
+                  <text class="svg-text-muted" x="380" y="16" text-anchor="end" font-size="7">6 curves · 1 pair of points · 6 different secrets</text>
                 </svg>`;
               })()}
               <p class="text-xs text-gray-500 mt-2 text-center">

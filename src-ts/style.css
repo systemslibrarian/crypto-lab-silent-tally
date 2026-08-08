@@ -267,3 +267,120 @@ html[data-theme='light'] .bg-amber-950\/20 {
     min-height: 44px;
   }
 }
+
+/* ---- SVG ink ----
+   SVG paints from `fill`/`stroke`, not `color`, so NOT ONE of the light-theme
+   `.text-*` remaps above can reach it — and neither can the gray-500 lift at
+   the top of this file, even though three of the four diagrams hardcoded that
+   exact hex. Every figure in this lab was authored as dark-palette literals and
+   rendered unchanged on the light card, which is white. Measured before the
+   fix, in light theme on white:
+
+     exhibit 1  "Σ = total"                emerald-300  1.52:1
+     exhibit 3  "x (party index)"          gray-400     2.54:1
+     exhibit 3  "f(1)=11" … "f(5)=43"      emerald-300  1.52:1
+     exhibit 3  "f(0) = 8 (secret)"        amber-400    1.67:1
+     exhibit 6  "x (party index)"          gray-500     4.83:1 (passes)
+
+   …and in dark theme on the gray-900 card:
+
+     exhibit 1  "only the sum revealed"    gray-500     3.67:1
+     exhibit 4  "Each line represents …"   gray-500     3.67:1
+
+   The tokens below are the same ones the light-theme remaps above already use
+   for the equivalent prose, so a figure's ink now matches the paragraph beside
+   it in both themes. Rules that name one value apply to both themes because
+   that value clears the floor on both surfaces. */
+
+.svg-text {
+	fill: var(--color-gray-200);
+}
+.svg-text-muted {
+	fill: var(--color-gray-400);
+}
+/* gray-500 is the one neutral that clears 3:1 on BOTH the dark card and white,
+   so axis rules and connectors need no per-theme value. */
+.svg-axis {
+	stroke: var(--color-gray-500);
+}
+.svg-link {
+	stroke: var(--color-gray-500);
+	opacity: 0.55;
+}
+/* gray-800, not gray-700: exhibit 4 prints each hospital's city INSIDE the
+   node, and .svg-text-muted on a gray-700 disc measures 3.96:1. */
+.svg-node {
+	fill: var(--color-gray-800);
+	stroke: var(--color-emerald-300);
+}
+.svg-node-plain {
+	fill: var(--color-gray-700);
+	stroke: var(--color-gray-500);
+}
+.svg-mesh {
+	stroke: var(--color-emerald-300);
+	opacity: 0.4;
+}
+.svg-curve {
+	stroke: var(--color-indigo-400);
+}
+.svg-point {
+	fill: var(--color-emerald-400);
+	stroke: var(--color-emerald-800);
+}
+.svg-point-label {
+	fill: var(--color-emerald-300);
+}
+.svg-secret {
+	fill: var(--color-amber-500);
+	stroke: var(--color-amber-900);
+}
+.svg-secret-label {
+	fill: var(--color-amber-300);
+}
+.svg-danger {
+	fill: var(--color-red-500);
+	stroke: var(--color-red-900);
+}
+.svg-danger-label {
+	fill: var(--color-red-300);
+}
+.svg-danger-mark {
+	fill: var(--color-red-500);
+}
+.svg-cross {
+	stroke: var(--color-red-500);
+}
+
+html[data-theme='light'] .svg-text {
+	fill: var(--color-gray-800);
+}
+html[data-theme='light'] .svg-text-muted {
+	fill: var(--color-gray-600);
+}
+html[data-theme='light'] .svg-node {
+	fill: var(--color-emerald-50);
+	stroke: var(--color-emerald-700);
+}
+html[data-theme='light'] .svg-mesh {
+	stroke: var(--color-emerald-700);
+	opacity: 0.6;
+}
+html[data-theme='light'] .svg-curve {
+	stroke: var(--color-indigo-600);
+}
+html[data-theme='light'] .svg-point {
+	fill: var(--color-emerald-600);
+	stroke: var(--color-emerald-900);
+}
+html[data-theme='light'] .svg-point-label {
+	fill: var(--color-emerald-700);
+}
+html[data-theme='light'] .svg-secret-label {
+	/* amber-800, not amber-700: the note at the top of the light-theme block
+	   records that amber-700 only reaches ~4.49:1 on a tinted panel. */
+	fill: var(--color-amber-800);
+}
+html[data-theme='light'] .svg-danger-label {
+	fill: var(--color-red-700);
+}

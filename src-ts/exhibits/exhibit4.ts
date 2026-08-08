@@ -39,9 +39,9 @@ export function renderExhibit4(container: HTMLElement, state: AppState): void {
             const cx = 250 + 110 * Math.cos(angle);
             const cy = 140 + 100 * Math.sin(angle);
             return `
-              <circle cx="${cx}" cy="${cy}" r="28" fill="#1f2937" stroke="#6ee7b7" stroke-width="1.5"/>
-              <text x="${cx}" y="${cy - 6}" text-anchor="middle" fill="#d1d5db" font-size="8" font-weight="bold">H${h.id}</text>
-              <text x="${cx}" y="${cy + 6}" text-anchor="middle" fill="#9ca3af" font-size="6">${h.name.split(' ')[0]}</text>
+              <circle class="svg-node" cx="${cx}" cy="${cy}" r="28" stroke-width="1.5"/>
+              <text class="svg-text" x="${cx}" y="${cy - 6}" text-anchor="middle" font-size="8" font-weight="bold">H${h.id}</text>
+              <text class="svg-text-muted" x="${cx}" y="${cy + 6}" text-anchor="middle" font-size="6">${h.name.split(' ')[0]}</text>
             `;
           }).join('')}
           ${(() => {
@@ -54,17 +54,23 @@ export function renderExhibit4(container: HTMLElement, state: AppState): void {
                 const y1 = 140 + 100 * Math.sin(ai);
                 const x2 = 250 + 110 * Math.cos(aj);
                 const y2 = 140 + 100 * Math.sin(aj);
-                lines.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#4b5563" stroke-width="0.75" opacity="0.5"/>`);
+                lines.push(`<line class="svg-link" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="0.75"/>`);
               }
             }
             return lines.join('');
           })()}
-          <text x="250" y="265" text-anchor="middle" fill="#6b7280" font-size="9">Each line represents bidirectional share exchange</text>
+          <text class="svg-text-muted" x="250" y="265" text-anchor="middle" font-size="9">Each line represents bidirectional share exchange</text>
         </svg>
       </div>
 
       <!-- 5×5 Share Matrix -->
-      <div class="bg-gray-900 rounded-xl p-3 sm:p-5 border border-gray-800 overflow-x-auto -mx-4 sm:mx-0 rounded-none sm:rounded-xl">
+      <!-- tabindex + role: the table has a 500px minimum and this wrapper
+           scrolls it horizontally on a phone, but a table holds nothing
+           focusable, so without a tab stop the matrix was unreachable by
+           keyboard (WCAG 2.1.1). role="region" is what makes the tab stop
+           announce itself rather than arriving as an unnamed focus target. -->
+      <div class="bg-gray-900 rounded-xl p-3 sm:p-5 border border-gray-800 overflow-x-auto -mx-4 sm:mx-0 rounded-none sm:rounded-xl"
+           tabindex="0" role="region" aria-labelledby="matrix-heading">
         <h3 class="text-sm font-semibold text-gray-300 mb-4 px-1" id="matrix-heading">5 × 5 Share Matrix</h3>
         <table class="w-full text-xs font-mono min-w-[500px]" aria-labelledby="matrix-heading">
           <thead>
