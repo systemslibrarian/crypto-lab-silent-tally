@@ -6,17 +6,13 @@ import type { Page } from '@playwright/test';
  * This exists because axe is not a complete contrast oracle. Two classes of
  * text never reach the `violations` array a gate asserts on:
  *
- *  - text over a *translucent* or mixed surface — axe declines to compute a
- *    ratio and files the node under `incomplete`. Tailwind's slash-opacity
- *    utilities are all over this lab: the exhibit panels are `bg-red-950/20`,
- *    `bg-emerald-950/20`, `bg-indigo-950/30`, `bg-amber-950/20`, and
- *    `.cl-hero-why` is a `color-mix(in oklab, var(--color-indigo-500) 10%,
- *    transparent)` wash. None of those is a flat colour, so their text
- *    composites onto whatever the page behind them is painting.
+ *  - text over a background *gradient* — axe declines to compute a ratio and
+ *    files the node under `incomplete`. The callouts sit on translucent tints
+ *    of their own semantic colour, so their text composites onto something axe
+ *    will not measure.
  *  - text faded by an ancestor's `opacity` — axe reads the declared `color`,
- *    which is not the colour that lands on screen. Two elements here do exactly
- *    that: `.cl-hero-sub` renders `--color-gray-300`/`gray-600` at `opacity:
- *    .85`, and the footer fades its whole subtree to `opacity: 0.7`.
+ *    which is not the colour that lands on screen. Note this lab collapses its
+ *    animations to 0.01ms under reduced motion, which preserves end states.
  *
  * So: walk every element that owns text, composite the real painted result
  * (translucent colours, gradient stops and opacity groups included), and
@@ -40,28 +36,28 @@ import type { Page } from '@playwright/test';
  * Three things this page forced on top of that, each of which otherwise makes
  * the helper report a ratio nothing on screen has:
  *
- *  - TEXT SCROLLED OUT OF A CLIPPING ANCESTOR PAINTS NOTHING. The share matrix
- *    and the long monospace field elements sit in horizontally scrolling
- *    wrappers, so at 380px much of them is scrolled out of the frame. Content
- *    past the client box is not dimmed or partly drawn — it is absent, and
- *    asking what colour it sits on has no answer. Its rect is still outside
- *    every ancestor's box, so the ancestor walk would find nothing behind it and
- *    fall through to white, inventing a failure. Skip it, and rely on the states
- *    and widths where the very same element is visible and measured for real.
+ *  - TEXT SCROLLED OUT OF A CLIPPING ANCESTOR PAINTS NOTHING. The scheme
+ *    the HMAC signature is 64 unbroken hex characters in a `nowrap` .mono-box,
+ *    so at 380px most of it is clipped away. Content scrolled past the client box is not dimmed or partly
+ *    drawn — it is absent from the frame, and asking what colour it sits on has
+ *    no answer. Its rect is still to the right of every ancestor's box, so the
+ *    ancestor walk would find nothing behind it and fall through to white,
+ *    inventing a failure. Skip it, and rely on the wider viewport where the very
+ *    same element is visible and measured for real.
  *
  *  - TRANSPARENT TEXT PAINTS NOTHING. Anything drawn `color: transparent` lays
  *    no ink down; compositing a zero-alpha foreground just returns the backdrop
  *    and reports a fixed 1:1. There is no contrast requirement on ink that is
  *    never laid down.
  *
- *  - SVG PAINTS IN DOCUMENT ORDER, SO SIBLINGS CAN BE THE BACKGROUND. Exhibit 6
- *    draws a real SVG — six polynomial curves through the coalition's two known
- *    points — and Exhibit 3 draws the toy Shamir axis. Where such a figure
- *    labels a shape, the label's backdrop is a PRECEDING SIBLING shape, not an
- *    ancestor, and an ancestor-only walk would composite it onto the svg's own
- *    transparent background and report a ratio nothing on screen has. So for
- *    SVG text, any earlier sibling shape whose box contains the text box is
- *    composited first.
+ *  - SVG PAINTS IN DOCUMENT ORDER, SO SIBLINGS CAN BE THE BACKGROUND. The three
+ *    lab draws no SVG figures today, but the rule is kept because it is cheap and
+ *    silent when unused: an `<svg>` draws a shape as a `<rect>` and then its
+ *    label as a following `<text>`, so a label's backdrop is a PRECEDING
+ *    SIBLING shape, not an ancestor. An ancestor-only
+ *    walk would composite those labels onto the svg's own transparent background
+ *    and report a ratio nothing on screen has. So for SVG text, any earlier
+ *    sibling shape whose box contains the text box is composited first.
  */
 
 export interface ContrastFailure {
@@ -90,10 +86,10 @@ export async function auditContrast(page: Page): Promise<ContrastFailure[]> {
     /**
      * Resolve ANY CSS colour to straight-alpha sRGB via a 1×1 canvas.
      *
-     * A hand-rolled `rgba()` regex is not enough here: Tailwind v4 emits its
-     * palette as `oklch()` and its slash-opacity utilities as
-     * `color-mix(in oklab, ...)`, and the hero's "why it matters" wash is
-     * another `color-mix`. Chromium reports all of those
+     * A hand-rolled `rgba()` regex is not enough here: this page authors its
+     * mixes accents into surfaces with `color-mix()` in both `oklab` and `srgb`
+     * (the hero's "why it matters" wash is `color-mix(in oklab, ...)`), and
+     * Chromium reports those
      * to `getComputedStyle` unchanged rather than converting them to sRGB. A
      * regex that only understands `rgb()/rgba()` sees `null` for every one of
      * them and the walk then falls through to the wrong backdrop — which
@@ -265,16 +261,16 @@ export async function auditContrast(page: Page): Promise<ContrastFailure[]> {
     /**
      * Evaluate one background-image layer at a document point.
      *
-     * Judging a gradient at its worst *stop* assumes that stop covers the text
-     * wherever the text sits. That is right for a gradient spanning its element
-     * and wrong for a decorative wash confined to one corner: the text a page
-     * height below would then be judged against a colour it never sits on. So
-     * each gradient is *sampled* at the text's real location instead: linear by
-     * projecting onto the gradient line, radial by distance from the centre over
-     * the farthest-corner radius. This lab's own stylesheet declares no
-     * gradients today — the shared header's may — so this path is mostly
-     * inert here and kept for the case where one is added. A non-gradient layer
-     * (`url()`, `none`) is unmeasurable and paints nothing.
+     * The previous gate judged every gradient at its worst *stop*, assuming that
+     * stop covered the text wherever the text sat. That is right for a gradient
+     * that spans its element, but this page's `:root` paints two low-alpha
+     * radial washes that fade to `transparent` by ~30% — decorative glows in the
+     * top corners. Judging the footer, a full page-height below, by the corner
+     * colour invented backdrops the footer text never sits on (accent links read
+     * 3.56:1 where they actually render ~4.9:1). So each gradient is *sampled* at
+     * the text's real location instead: linear by projecting onto the gradient
+     * line, radial by distance from the centre over the farthest-corner radius.
+     * A non-gradient layer (`url()`, `none`) is unmeasurable and paints nothing.
      */
     const sampleLayer = (layer: string, rect: DOMRect, p: Point): RGBA => {
       if (!/gradient/.test(layer)) return TRANSPARENT;
@@ -366,8 +362,8 @@ export async function auditContrast(page: Page): Promise<ContrastFailure[]> {
     /**
      * Style and geometry are memoised per element for one pass.
      *
-     * Exhibit 4's share matrix is 5x5 cells of long field elements, and every
-     * one of them walks the same handful of ancestors. Without
+     * This page renders 512 bit-grid cells plus a text node per crib/component
+     * card and every one of them walks the same handful of ancestors. Without
      * the caches the pass re-reads the same computed styles and rects tens of
      * thousands of times. Nothing mutates the DOM during the pass, so the cached
      * values cannot go stale.
@@ -420,8 +416,14 @@ export async function auditContrast(page: Page): Promise<ContrastFailure[]> {
         sib = sib.previousElementSibling;
       }
       // Earliest sibling first — that is the order the compositor paints in.
+      // Only shapes that actually PAINT A FILL can be a backdrop. SVG's initial
+      // `fill` is black, and `getComputedStyle` reports that for stroke-only
+      // geometry too — so a <line> used as a grid rule or axis reads as an
+      // opaque black rectangle covering whatever it crosses. Compositing that
+      // invented a 3.82:1 failure for labels whose real ratio is 6.15:1.
+      const FILLED = ['rect', 'circle', 'ellipse', 'polygon', 'path'];
       for (const s of stack.reverse()) {
-        if (s.tagName === 'text' || s.tagName === 'title' || s.tagName === 'desc') continue;
+        if (!FILLED.includes(s.tagName.toLowerCase())) continue;
         if (!contains(rectOf(s), box)) continue;
         const scs = styleOf(s);
         const fill = resolve(scs.fill);
@@ -439,19 +441,29 @@ export async function auditContrast(page: Page): Promise<ContrastFailure[]> {
       // A closed <details> hides its body with `content-visibility: hidden`,
       // not `display: none`, and Chromium keeps the last laid-out geometry for
       // that subtree — so the `display`/rect tests above all pass for text that
-      // paints nothing. This page uses no native `<details>`; its panels are
-      // class-toggled, and the exhibit walkthrough replaces `#exhibit-container`
-      // wholesale, so the check is silent here and kept as a cheap guard.
+      // paints nothing. This page's disclosure is the `.code-panel` Web Crypto
+      // snippet, whose open state is a real state the gate scans explicitly.
       if ((el as HTMLElement).checkVisibility?.() === false) return false;
       const r = rectOf(el);
       if (r.width <= 0 || r.height <= 0) return false;
       // Text parked off the left/top edge of the page paints no pixels. This is
-      // the WCAG-sanctioned "visually hidden until focused" idiom, used here by
-      // BOTH skip links — the shared header's `.cl-skip-link` and the lab's own
-      // `sr-only focus:not-sr-only` one. Measuring the parked copy invents a
-      // failure for text that is not on screen; the focused rendering is a real
-      // state and the gate scans it explicitly instead.
-      if (r.right <= 0 || r.bottom <= 0) return false;
+      // the WCAG-sanctioned "visually hidden until focused" idiom, used by both
+      // skip links here — the shared header's `.cl-skip-link` parks at
+      // `top: -3rem` and the lab's own `.skip-link` off-screen, each sliding
+      // into view only on focus. Measuring the parked copy invents a failure
+      // for text that is not on screen; the focused rendering is a real state
+      // and the gate scans it explicitly instead.
+      // DOCUMENT space, not viewport space. `getBoundingClientRect()` is
+      // viewport-relative, so once Playwright scrolls a control into view every
+      // element ABOVE the viewport has `bottom <= 0` and this guard silently
+      // dropped it from the walk. Measured on one lab: 27 of 105 text-owning
+      // elements — 26% of the page — vanished from the oracle at the end of a
+      // drive. A green contrast run on a page taller than the viewport could
+      // not be trusted. Adding the scroll offset restores the original intent
+      // (text parked off the top/left of the DOCUMENT — the "visually hidden
+      // until focused" idiom) without hiding the part of the page that has
+      // merely been scrolled past.
+      if (r.right + window.scrollX <= 0 || r.bottom + window.scrollY <= 0) return false;
       // Scrolled out of an `overflow: auto` container — clipped, not painted.
       if (clippedAway(el, r)) return false;
       return true;
@@ -494,9 +506,9 @@ export async function auditContrast(page: Page): Promise<ContrastFailure[]> {
      * `color-contrast` rule skips it — and this arithmetic oracle exists to
      * catch what axe *misses* among exposed text (gradients, opacity), not to be
      * stricter than axe on decorative content. Honour the same boundary. Without
-     * it, Exhibit 1's 🏥 and Exhibit 6's 🕵️ — both `aria-hidden` — are measured
-     * as if their glyphs took the element's declared `color`, but an emoji
-     * paints in its own multicolour, so that ratio describes nothing on screen.
+     * it, the harvest card's `aria-hidden` lock emoji (🔓/🔒) is measured as if
+     * its glyph took the element's `color: #fff` — but an emoji paints in its
+     * own multicolour, so that ratio describes nothing on screen.
      */
     const ariaHidden = (el: Element): boolean => {
       let n: Element | null = el;
@@ -512,13 +524,11 @@ export async function auditContrast(page: Page): Promise<ContrastFailure[]> {
      * directly in a `<g>`, `<svg>` or shape element is in the DOM but paints
      * nothing, so it has no colour and no contrast requirement.
      *
-     * This is not hypothetical elsewhere in this fleet: interpolating a string
-     * ARRAY into a template literal (`<g>${dots}</g>`) makes JS join it with
-     * commas, leaving a run of stray "," text nodes inside the group. They are
-     * invisible on screen, but a walk that measures them reports a 1:1 failure
-     * against the panel — a ratio describing ink that was never laid down. This
-     * lab's SVG markup is authored inline in the exhibit templates and sets no
-     * character data on shapes, so the rule is silent here.
+     * This is not hypothetical: interpolating a string ARRAY into a template
+     * literal (`<g>${dots}</g>`) makes JS join it with commas, leaving a run of
+     * stray "," text nodes inside the group. They are invisible on screen, but
+     * a walk that measures them reports a 1:1 failure against the panel — a
+     * ratio describing ink that was never laid down.
      */
     const SVG_NS = 'http://www.w3.org/2000/svg';
     const nonRenderingSvgText = (el: Element): boolean =>
