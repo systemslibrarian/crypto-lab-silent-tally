@@ -22,7 +22,18 @@ test.beforeEach(async ({ page }) => {
   const errors: string[] = [];
   pageErrors.set(page, errors);
   page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
+  // Ask for reduced motion the way a reader does, rather than forcing it with
+  // a style tag. This lab's own `@media (prefers-reduced-motion: reduce)`
+  // block already collapses every duration to 0.001ms, so the flake control
+  // is identical — but it now comes from the page instead of from the test,
+  // which means this suite exercises the rendering a reduced-motion visitor
+  // actually gets AND fails if that block ever stops working.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('.');
+  expect(
+    await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches),
+    'reduced-motion emulation must actually be in effect'
+  ).toBe(true);
   // The overlay clears once the WASM core is up and exhibit 1 has rendered.
   await page.waitForFunction(() => {
     const overlay = document.getElementById('loading-overlay');
@@ -31,9 +42,7 @@ test.beforeEach(async ({ page }) => {
       (!overlay || overlay.style.display === 'none') && !!container && container.childElementCount > 0
     );
   });
-  await page.addStyleTag({
-    content: `*,*::before,*::after{animation-duration:0s!important;transition-duration:0s!important;scroll-behavior:auto!important}`,
-  });
+
 });
 
 test.afterEach(async ({ page }) => {
