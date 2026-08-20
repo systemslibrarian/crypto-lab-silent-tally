@@ -19,6 +19,11 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  # Required by the `gh workflow run deploy.yml` at the end of the merge step.
+  # Without it that call returns HTTP 403 "Resource not accessible by
+  # integration", and because the call ends in `|| echo "::warning::..."` the
+  # job still goes green while the site quietly never rebuilds.
+  actions: write
 
 jobs:
   merge:
