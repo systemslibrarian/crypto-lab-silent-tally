@@ -1,7 +1,10 @@
 name: Test
 
+# Pull requests are judged by deploy.yml, which calls this workflow as its
+# `test` job alongside the browser gate. A pull_request trigger here as well
+# would run this suite twice per PR, and the copy outside deploy.yml is not the
+# one the Dependabot auto-merge waits on.
 on:
-  pull_request:
   push:
     branches-ignore: [main] # main is covered by the deploy workflow's gate
   workflow_call: # invoked by deploy.yml before publishing
