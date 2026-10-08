@@ -192,7 +192,9 @@ Building the WASM core needs the Rust toolchain and `wasm-pack`
 ## Security Notes
 
 - Polynomial coefficients come from a **cryptographically secure RNG**
-  (`getrandom`), not `Math.random`.
+  (`getrandom`), not `Math.random`. Sampling keeps 61 random bits and rejects
+  the value $p$, giving every field element the same probability; reducing an
+  arbitrary 64-bit draw modulo $p$ would introduce a small bias.
 - The privacy guarantee is **information-theoretic for the sharing model** — but
   this demo simulates all five parties in one browser tab and does **not**
   implement secure channels, authentication, or malicious-party defenses.

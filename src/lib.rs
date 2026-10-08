@@ -89,11 +89,23 @@ pub fn gf_inv(a: u64) -> u64 {
 // Cryptographically-secure random field element
 // ---------------------------------------------------------------------------
 
+fn random_field_element_from(mut next_u64: impl FnMut() -> u64) -> u64 {
+    loop {
+        // Each 61-bit value has exactly eight u64 preimages. Reject the one
+        // value outside GF(p), rather than biasing 0..7 with `u64 % P`.
+        let candidate = next_u64() & P;
+        if candidate < P {
+            return candidate;
+        }
+    }
+}
+
 fn random_field_element() -> u64 {
-    let mut buf = [0u8; 8];
-    getrandom::fill(&mut buf).expect("getrandom failed");
-    let val = u64::from_le_bytes(buf);
-    val % P
+    random_field_element_from(|| {
+        let mut buf = [0u8; 8];
+        getrandom::fill(&mut buf).expect("getrandom failed");
+        u64::from_le_bytes(buf)
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -181,6 +193,30 @@ pub fn lagrange_interpolate(x_values: Vec<u64>, y_values: Vec<u64>) -> u64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn field_sampler_has_equal_preimages_at_boundaries() {
+        // All eight high-bit prefixes must map to the SAME low 61 bits.
+        // Modulo P would instead add the prefix and fail this control.
+        for value in [0, 1, 7, 8, P - 1] {
+            for prefix in 0..8u64 {
+                let draw = (prefix << 61) | value;
+                assert_eq!(random_field_element_from(|| draw), value);
+            }
+        }
+    }
+
+    #[test]
+    fn field_sampler_rejects_every_out_of_field_preimage() {
+        // P must be rejected for every prefix, including u64::MAX.
+        // A second rejection exercises the loop; zero remains an allowed
+        // coefficient (forcing a nonzero leading coefficient biases Shamir).
+        for prefix in 0..8u64 {
+            let mut draws = [(prefix << 61) | P, u64::MAX, 0].into_iter();
+            assert_eq!(random_field_element_from(|| draws.next().unwrap()), 0);
+            assert_eq!(draws.next(), None);
+        }
+    }
 
     #[test]
     fn test_gf_add() {
