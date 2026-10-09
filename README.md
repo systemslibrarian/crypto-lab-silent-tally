@@ -210,3 +210,10 @@ Building the WASM core needs the Rust toolchain and `wasm-pack`
 *Part of the [Crypto Lab](https://crypto-lab.systemslibrarian.dev/) suite.*
 
 *"So whether you eat or drink or whatever you do, do it all for the glory of God." — 1 Corinthians 10:31*
+
+## Publishing requests
+
+`npm run deploy` requests the existing `deploy.yml` workflow at `main`.
+The workflow retains Rust, WASM, TypeScript, unit, production-build and browser gates.
+A successful request is not evidence of successful publication; inspect the run
+and actual public application separately. Failed requests retain their nonzero status.
