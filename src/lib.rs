@@ -19,8 +19,8 @@ fn reduce(x: u64) -> u64 {
 
 /// Canonicalize an arbitrary `u64` into the field representative `[0, P-1]`.
 ///
-/// Public (`wasm_bindgen`) entry points run inputs through this so that callers
-/// passing un-reduced values can never trigger overflow or non-canonical output.
+/// Arithmetic entry points run inputs through this so callers passing
+/// un-reduced values cannot trigger overflow or non-canonical output.
 #[inline]
 fn canon(x: u64) -> u64 {
     x % P
@@ -38,6 +38,8 @@ pub fn gf_add(a: u64, b: u64) -> u64 {
 /// Subtraction in GF(p).  Returns (a - b) mod p.
 #[inline]
 fn gf_sub(a: u64, b: u64) -> u64 {
+    let a = canon(a);
+    let b = canon(b);
     if a >= b {
         reduce(a - b)
     } else {
@@ -65,7 +67,7 @@ fn mersenne_reduce(x: u128) -> u64 {
 /// Modular exponentiation: base^exp mod p  (square-and-multiply).
 fn gf_pow(mut base: u64, mut exp: u64) -> u64 {
     let mut result: u64 = 1;
-    base = reduce(base);
+    base = canon(base);
     while exp > 0 {
         if exp & 1 == 1 {
             result = gf_mul(result, base);
@@ -163,6 +165,17 @@ pub fn lagrange_interpolate(x_values: Vec<u64>, y_values: Vec<u64>) -> u64 {
     let n = x_values.len();
     assert_eq!(n, y_values.len(), "x and y arrays must have equal length");
     assert!(n >= 1, "need at least 1 point");
+
+    let x_values: Vec<u64> = x_values.into_iter().map(canon).collect();
+    let y_values: Vec<u64> = y_values.into_iter().map(canon).collect();
+    for i in 0..n {
+        for j in (i + 1)..n {
+            assert_ne!(
+                x_values[i], x_values[j],
+                "x values must be distinct field elements"
+            );
+        }
+    }
 
     let mut result: u64 = 0;
 
@@ -359,6 +372,23 @@ mod tests {
         for a in [0u64, 1, 999, P - 1] {
             assert_eq!(gf_sub(a, a), 0);
         }
+        // Non-canonical public inputs are reduced before subtraction.
+        assert_eq!(gf_sub(P + 3, P + 5), P - 2);
+        assert_eq!(gf_sub(0, u64::MAX), P - (u64::MAX % P));
+    }
+
+    #[test]
+    fn test_lagrange_canonicalizes_inputs() {
+        assert_eq!(
+            lagrange_interpolate(vec![P + 1, P + 2, P + 3], vec![P + 15, P + 33, P + 61]),
+            7
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "x values must be distinct field elements")]
+    fn test_lagrange_rejects_duplicate_nodes() {
+        lagrange_interpolate(vec![1, P + 1], vec![10, 20]);
     }
 
     /// Tiny deterministic xorshift PRNG so tests are reproducible without

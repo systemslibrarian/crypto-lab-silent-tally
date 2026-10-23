@@ -365,10 +365,12 @@ async function next(page: Page, to: number): Promise<void> {
 export async function driveAllStates(page: Page, theme: string): Promise<void> {
   await scan(page, `${theme} / exhibit 1`);
 
-  // Both skip links park off-screen until focused; the focused rendering is the
-  // state a keyboard visitor actually sees.
+  // Both skip links park off-screen until focused; scan each focused rendering
+  // because they bypass different pieces of the two stacked headers.
+  await page.locator('.cl-skip-link').focus();
+  await scan(page, `${theme} / shared skip link focused`);
   await page.locator('a[href="#exhibit-container"]').focus();
-  await scan(page, `${theme} / skip link focused`);
+  await scan(page, `${theme} / exhibit skip link focused`);
 
   // ── Exhibit 2 — private input ──────────────────────────────────────────
   await next(page, 2);

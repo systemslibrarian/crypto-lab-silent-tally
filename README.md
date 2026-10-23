@@ -84,10 +84,11 @@ must add them up the same way; every party's local sum expansion must be exactly
 share-matrix column it claims to be summing, and the homomorphism walk-through must show
 that same column and land on that same $T_k$; every 3-subset of local sums must reconstruct
 the identical total, while two must leave it undetermined and four must be called
-redundant; and the coalition's verdict must follow the number its own Lagrange run
-produced — below $t = 3$ the reconstruction must genuinely miss the victim's count and
-above it must hit it to the digit, for the counts the learner entered rather than the
-seeded ones. Every failure path is asserted to reach its state *and* name its cause:
+redundant; and the coalition boundary must follow the information available — below
+$t = 3$ its low-degree interpolation is only one indistinguishable candidate even if
+it happens to equal the secret, while at or above $t$ it must reconstruct to the digit,
+for the counts the learner entered rather than the seeded ones. Every failure path is
+asserted to reach its state *and* name its cause:
 out-of-range enrollments that cannot be locked, the gated Next button, the sub-threshold
 reconstruction, and the coalition cap that keeps the victim outside. Uncaught page
 exceptions fail the run.
@@ -167,7 +168,7 @@ The field math lives in two deliberately mirrored places:
 | 3 | Secret Sharing | Each secret split via a random degree-2 polynomial over GF(p); a field wrap-around primer and an honest toy-field (p=97) parabola show what a real degree-2 sharing looks like |
 | 4 | Distribution | The 5×5 share matrix — who sends what to whom |
 | 5 | Computation & Reconstruction | Additive homomorphism made visible (adding shares at x=k *is* evaluating the summed polynomial), plus a 3-of-5 chooser proving every valid subset reconstructs the same total — and 2 cannot |
-| 6 | Coalition Attack | Build a coalition of 1–4 hospitals and Lagrange-interpolate their *actual* shares of a victim's polynomial. Below t = 3 the reconstruction misses (and the alternatives are drawn as real polynomials); at t = 3 it lands on the victim's count to the digit. Every verdict is read off that reconstruction, never off the coalition size |
+| 6 | Coalition Attack | Build a coalition of 1–4 hospitals and Lagrange-interpolate their *actual* shares of a victim's polynomial. Below t = 3 the result is labeled as one candidate among a field of equally consistent secrets (and alternatives are drawn as real polynomials); at t = 3 it reconstructs the victim's count to the digit. |
 
 ## Testing
 
