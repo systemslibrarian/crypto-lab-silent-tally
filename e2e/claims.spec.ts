@@ -6,9 +6,9 @@
  * read the rendered DOM and check the page's numbers against each other: the
  * reconstructed total against the enrollments actually entered, each party's
  * local sum against the share-matrix column it claims to be summing, every
- * 3-subset against the canonical reconstruction, and the coalition's verdict
- * against the number its own Lagrange run produced. A hardcoded expectation
- * would pass against a page computing nonsense consistently; these will not.
+ * 3-subset against the canonical reconstruction, and the coalition boundary
+ * against the shares it actually holds. A hardcoded expectation would pass
+ * against a page computing nonsense consistently; these will not.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
@@ -125,6 +125,13 @@ test('navigation: the walkthrough is gated on locking every input, and ends at e
   await expect(page.locator('#btn-prev')).toBeDisabled();
   await expect(page.locator('#btn-next')).toBeEnabled();
 
+  const sharedSkip = page.locator('.cl-skip-link');
+  await expect(sharedSkip).toHaveAttribute('href', '#main-content');
+  await expect(page.locator('#main-content')).toHaveAttribute('tabindex', '-1');
+  await sharedSkip.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#main-content')).toBeFocused();
+
   await page.locator('#btn-next').click();
   await expect(page.locator('#progress')).toHaveText('Exhibit 2 of 6');
   await expect(page.locator('#btn-prev')).toBeEnabled();
@@ -168,7 +175,7 @@ test('exhibit 2: an out-of-range enrollment is refused, named, and cannot be loc
   await page.locator('#btn-next').click();
   await expect(page.locator('#progress')).toHaveText('Exhibit 2 of 6');
 
-  for (const bad of ['0', '10000']) {
+  for (const bad of ['0', '10000', '1.5']) {
     await page.locator('[data-hospital-id="1"]').fill(bad);
     await expect(page.locator('#error-1'), bad).toBeVisible();
     expect(await textOf(page.locator('#error-1')), bad).toBe('Enter an integer between 1 and 9,999');
@@ -438,10 +445,14 @@ async function readAttack(page: Page): Promise<Attack> {
     .split('&')
     .map((s) => Number(s.trim()));
   const victim = Number(capture(body, /attacking Hospital (\d+)/, 'victim'));
-  const recovered = capture(body, /coalition's reconstruction f\(0\) = (\d+)/, 'reconstruction');
+  const recovered = capture(
+    body,
+    /(?:coalition's reconstruction|one low-degree candidate) f\(0\) = (\d+)/,
+    'interpolation output',
+  );
   const realCount = grouped(capture(body, /real count = ([\d,]+)/, 'real count'));
   const broken = body.includes('✗ Guarantee broken.');
-  const failed = body.includes('✓ Coalition fails.');
+  const failed = body.includes('✓ Privacy holds.');
   // Exactly one verdict, never both and never neither.
   expect(broken !== failed, 'coalition verdict is ambiguous').toBe(true);
   // f(0) is the reconstruction line, not a share the coalition holds.
@@ -449,7 +460,7 @@ async function readAttack(page: Page): Promise<Attack> {
   return { colluders, victim, recovered, realCount, broken, shares };
 }
 
-test('exhibit 6: the coalition verdict is whatever its own Lagrange run produced', async ({
+test('exhibit 6: the coalition crosses from candidates to reconstruction at the threshold', async ({
   page,
 }) => {
   const counts = [1111, 222, 3333, 44, 555];
@@ -488,12 +499,15 @@ test('exhibit 6: the coalition verdict is whatever its own Lagrange run produced
       );
       expect(await textOf(exhibit(page)), `size ${size}`).toContain('to the digit');
     } else {
-      // Below it the run must miss — and the page must not claim a break.
+      // Below it the output is only one candidate. Equality or inequality with
+      // the omniscient value cannot tell the coalition whether that guess is
+      // right, so the page must not claim a break either way.
       expect(attack.broken, `size ${size}`).toBe(false);
-      expect(Number(attack.recovered), `size ${size}`).not.toBe(attack.realCount);
       const body = await textOf(exhibit(page));
-      expect(body, `size ${size}`).toContain(`is below the threshold t = ${THRESHOLD}`);
-      expect(body, `size ${size}`).toContain(`fits a degree-${size - 1} curve`);
+      expect(body, `size ${size}`).toContain('✓ Privacy holds.');
+      expect(body, `size ${size}`).toContain('one low-degree candidate f(0)');
+      expect(body, `size ${size}`).toContain(`is below threshold t = ${THRESHOLD}`);
+      expect(body, `size ${size}`).toContain(`degree-${size - 1} interpolation`);
       expect(body, `size ${size}`).toContain(
         `With ${size} of ${THRESHOLD} points, the remaining ${THRESHOLD - size} coefficient`,
       );
@@ -514,8 +528,8 @@ test('exhibit 6: the coalition verdict is whatever its own Lagrange run produced
   const restored = await readAttack(page);
   expect(restored.colluders).toEqual([1, 2]);
   expect(restored.broken).toBe(false);
-  expect(Number(restored.recovered)).not.toBe(restored.realCount);
   const body = await textOf(exhibit(page));
+  expect(body).toContain('✓ Privacy holds.');
   expect(body).toContain('Multiple valid polynomials through the 2 known points');
   expect(body).toContain('6 curves · 1 pair of points · 6 different secrets');
 });

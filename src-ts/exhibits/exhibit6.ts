@@ -6,8 +6,8 @@ import { THRESHOLD, N_PARTIES } from '../types.js';
 /**
  * The coalition can grow to n − 1 members: one hospital must stay outside it to
  * be the victim. That range straddles the threshold (t = 3), so the learner can
- * drive the guarantee to BOTH outcomes — 2 colluders watch reconstruction miss,
- * 3 watch it land on the victim's real count.
+ * drive the guarantee to BOTH outcomes — below t the interpolation is only one
+ * indistinguishable candidate, while t shares reconstruct the victim's count.
  */
 const MAX_COALITION = N_PARTIES - 1;
 
@@ -28,13 +28,12 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
   }));
 
   // ---------------------------------------------------------------------
-  // THE ACTUAL ATTACK. Not a lookup table on coalition size: we hand the
-  // coalition's real shares to the same Lagrange routine Exhibit 5 uses and
-  // interpolate at x = 0. With k < t points that yields the degree-(k−1)
-  // curve through them, which is a *different* polynomial from the dealer's
-  // degree-2 one — so f(0) comes out wrong. With k ≥ t points it is the
-  // dealer's polynomial, and f(0) is the secret. Every verdict below reads
-  // off `attackSucceeded`, never off coalitionArr.length.
+  // THE ACTUAL INTERPOLATION. We hand the coalition's real shares to the same
+  // Lagrange routine Exhibit 5 uses. With k < t points this returns the f(0) of
+  // one arbitrary degree-(k−1) curve through those points. It may even equal
+  // the real secret by chance; that is still not knowledge because every other
+  // candidate has a degree-(t−1) polynomial through the same shares. At k ≥ t,
+  // the points determine the dealer's polynomial and the output must match.
   // ---------------------------------------------------------------------
   const trueSecret = BigInt(target.count);
   const recovered: bigint | null =
@@ -44,7 +43,11 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
           new BigUint64Array(coalitionShares.map(cs => cs.share)),
         )
       : null;
-  const attackSucceeded = recovered !== null && recovered === trueSecret;
+  const thresholdReached = coalitionArr.length >= THRESHOLD;
+  const reconstructionMatches = recovered !== null && recovered === trueSecret;
+  const privacyBroken = thresholdReached && reconstructionMatches;
+  const protocolError = thresholdReached && !reconstructionMatches;
+  const candidateCoincides = !thresholdReached && reconstructionMatches;
 
   container.innerHTML = `
     <div class="space-y-8">
@@ -58,8 +61,9 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
           Select up to <strong class="text-white">${MAX_COALITION} hospitals</strong> to form a coalition. They pool the
           shares they hold of another hospital's polynomial and run Lagrange interpolation at x = 0 — the same
           routine Exhibit 5 used, on their real share values. Threshold is t = ${THRESHOLD}, so the run is live in
-          both directions: below t the interpolation returns the wrong number, at or above t it returns the victim's
-          count exactly. Add and remove colluders and watch the guarantee hold, then collapse.
+          both directions: below t the interpolation returns one arbitrary candidate with no way to identify the
+          real one; at or above t it returns the victim's count exactly. Add and remove colluders and watch the
+          guarantee hold, then collapse.
         </p>
       </div>
 
@@ -69,6 +73,8 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
           const selected = coalition.has(h.id);
           // At the cap, the last hospital must stay outside — it is the victim.
           const full = !selected && coalition.size >= MAX_COALITION;
+          const shortName = h.name.split(' ')[0];
+          const status = selected ? 'In coalition' : full ? 'The victim' : 'Click to add';
           return `
             <button
               class="rounded-xl p-4 border-2 text-center transition-all min-h-[44px]
@@ -81,12 +87,12 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
               data-coalition-id="${h.id}"
               aria-pressed="${selected}"
               ${full ? 'aria-disabled="true"' : ''}
-              aria-label="${h.name}${selected ? ' — in coalition' : full ? ' — cannot join, this hospital is the victim' : ''}"
+              aria-label="${shortName} ${status} — ${h.name}"
             >
               <div class="text-2xl mb-1" aria-hidden="true">${selected ? '🕵️' : '🏥'}</div>
-              <div class="text-xs font-medium ${selected ? 'text-red-300' : 'text-white'}">${h.name.split(' ')[0]}</div>
+              <div class="text-xs font-medium ${selected ? 'text-red-300' : 'text-white'}">${shortName}</div>
               <div class="text-[10px] mt-1 ${selected ? 'text-red-400' : 'text-gray-400'}">
-                ${selected ? 'In coalition' : full ? 'The victim' : 'Click to add'}
+                ${status}
               </div>
             </button>
           `;
@@ -118,9 +124,9 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
           </div>
 
           <!-- =============================================================== -->
-          <!-- LIVE RECONSTRUCTION — the verdict is this computation's output.  -->
+          <!-- LIVE INTERPOLATION — threshold decides whether its output is knowledge. -->
           <!-- =============================================================== -->
-          <div class="bg-gray-950 rounded-lg p-4 border ${attackSucceeded ? 'border-red-600' : 'border-red-900/30'} space-y-3"
+          <div class="bg-gray-950 rounded-lg p-4 border ${privacyBroken || protocolError ? 'border-red-600' : 'border-emerald-900/40'} space-y-3"
                role="status" aria-live="polite">
             <div class="font-mono text-xs text-gray-400 space-y-1">
               <p class="text-gray-500">
@@ -131,8 +137,8 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
                 (${coalitionShares.map(cs => `${cs.partyId}, ${formatBigint(cs.share)}`).join('), (')})
               </p>
               <p class="pt-2 border-t border-gray-800">
-                <span class="text-gray-500">coalition's reconstruction f(0) =</span>
-                <span class="${attackSucceeded ? 'text-red-400' : 'text-gray-300'} font-bold">${recovered!.toString()}</span>
+                <span class="text-gray-500">${thresholdReached ? "coalition's reconstruction" : 'one low-degree candidate'} f(0) =</span>
+                <span class="${privacyBroken || protocolError ? 'text-red-400' : 'text-gray-300'} font-bold">${recovered!.toString()}</span>
               </p>
               <p>
                 <span class="text-gray-500">Hospital ${targetId}'s real count =</span>
@@ -141,22 +147,30 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
               </p>
             </div>
 
-            ${attackSucceeded ? `
+            ${privacyBroken ? `
               <p class="text-red-400 text-sm font-medium">
                 ✗ Guarantee broken. ${coalitionArr.length} colluders ≥ threshold t = ${THRESHOLD}: the interpolation
                 landed on Hospital ${targetId}'s real count, to the digit. ${coalitionArr.length} points pin down a
                 degree-${THRESHOLD - 1} polynomial uniquely, and f(0) is the secret. Nothing here is asserted — that
                 number came out of the same <code>lagrange_interpolate</code> Exhibit 5 used.
               </p>
+            ` : protocolError ? `
+              <p class="text-red-400 text-sm font-medium">
+                ✗ Protocol error. ${coalitionArr.length} colluders reached threshold t = ${THRESHOLD}, but their
+                interpolation did not reconstruct Hospital ${targetId}'s count. A valid sharing must reconstruct
+                exactly once the threshold is reached.
+              </p>
             ` : `
               <p class="text-emerald-400 text-sm font-medium">
-                ✓ Coalition fails. ${coalitionArr.length} point${coalitionArr.length === 1 ? '' : 's'} is below the
-                threshold t = ${THRESHOLD}, so the interpolation fits a degree-${coalitionArr.length - 1} curve
-                through the${coalitionArr.length === 1 ? ' one point' : 'm'} instead of the dealer's degree-${THRESHOLD - 1}
-                one — and its value at x = 0 misses the secret by a field-sized margin.
+                ✓ Privacy holds. ${coalitionArr.length} point${coalitionArr.length === 1 ? '' : 's'} is below threshold
+                t = ${THRESHOLD}. The displayed degree-${coalitionArr.length - 1} interpolation supplies only one
+                candidate f(0); it does not identify the dealer's degree-${THRESHOLD - 1} polynomial.
               </p>
               <p class="text-xs text-gray-400 leading-relaxed">
-                The miss is not the point; a lucky hit would be. With ${coalitionArr.length} of ${THRESHOLD} points, the
+                ${candidateCoincides
+                  ? 'This arbitrary candidate happens to equal the real count, but the coalition cannot recognize that coincidence.'
+                  : 'This arbitrary candidate differs from the real count, but a numerical miss is not the security proof.'}
+                With ${coalitionArr.length} of ${THRESHOLD} points, the
                 remaining ${THRESHOLD - coalitionArr.length} coefficient${THRESHOLD - coalitionArr.length === 1 ? ' is' : 's are'}
                 free, so <em>some</em> polynomial over GF(2⁶¹ − 1) passes through these shares for every candidate secret.
                 The shares are consistent with all of them, which is why they move the attacker's belief about the count
@@ -246,7 +260,7 @@ export function renderExhibit6(container: HTMLElement, state: AppState, onStateC
         <h3 class="text-sm font-semibold text-amber-400 mb-2">Where the guarantee ends</h3>
         <p class="text-gray-300 text-sm leading-relaxed">
           Threshold t = ${THRESHOLD} is the whole boundary, and the selector above walks you across it: add a third
-          colluder and the reconstruction stops missing. ${THRESHOLD} points uniquely determine a
+          colluder and the secret stops being underdetermined. ${THRESHOLD} points uniquely determine a
           degree-${THRESHOLD - 1} polynomial, so f(0) falls out. This is why threshold selection matters. In practice,
           t &gt; n/2 is common (a strict majority must collude to break privacy). Our t = ${THRESHOLD} out of
           n = ${N_PARTIES} means a majority coalition is required — 60% of participants.
