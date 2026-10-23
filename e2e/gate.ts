@@ -355,7 +355,7 @@ async function next(page: Page, to: number): Promise<void> {
  * `[data-lock-id]` buttons are clicked; every `[data-hom-party]` column and
  * every `[data-recon-id]` toggle is visited; and the coalition is grown one
  * `[data-coalition-id]` at a time from none through to past the threshold, so
- * BOTH verdicts — "Coalition fails" and "Guarantee broken" — are scanned
+ * BOTH verdicts — "Privacy holds" and "Guarantee broken" — are scanned
  * rather than only whichever one the walk happened to leave on screen.
  *
  * Exhibit 5's reconstruction chooser has four distinct panels and all four are
@@ -460,13 +460,13 @@ export async function driveAllStates(page: Page, theme: string): Promise<void> {
 
   // One colluder: the sub-threshold verdict in its singular wording.
   await coalition.nth(0).click();
-  await expect(page.locator('#exhibit-container')).toContainText('Coalition fails');
+  await expect(page.locator('#exhibit-container')).toContainText('Privacy holds');
   await scan(page, `${theme} / exhibit 6 one colluder`);
 
   // Two: still sub-threshold, and the only size that draws the multi-curve SVG.
   await coalition.nth(1).click();
   await expect(page.locator('#exhibit-container svg[role="img"]')).toBeVisible();
-  await scan(page, `${theme} / exhibit 6 two colluders (fails, with curves)`);
+  await scan(page, `${theme} / exhibit 6 two colluders (private, with curves)`);
 
   // Three: at the threshold — the "Guarantee broken" verdict, the opposite
   // branch of the same panel and the one a first-paint scan never reaches.
