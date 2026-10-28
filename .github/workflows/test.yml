@@ -9,6 +9,9 @@ on:
     branches-ignore: [main] # main is covered by the deploy workflow's gate
   workflow_call: # invoked by deploy.yml before publishing
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest

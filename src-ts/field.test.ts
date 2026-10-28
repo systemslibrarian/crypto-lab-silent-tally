@@ -80,6 +80,16 @@ describe('Lagrange interpolation', () => {
     expect(() => lagrangeInterpolate([1n], [1n, 2n])).toThrow();
     expect(() => lagrangeInterpolate([], [])).toThrow();
   });
+
+  it('canonicalizes inputs and rejects duplicate field nodes', () => {
+    expect(
+      lagrangeInterpolate(
+        [P + 1n, P + 2n, P + 3n],
+        [P + 15n, P + 33n, P + 61n],
+      ),
+    ).toBe(7n);
+    expect(() => lagrangeInterpolate([1n, P + 1n], [10n, 20n])).toThrow(/distinct/);
+  });
 });
 
 describe('Shamir round-trip (pure-TS reference)', () => {
@@ -133,15 +143,7 @@ describe('Shamir round-trip (pure-TS reference)', () => {
     expect(lagrangeInterpolate([1n, 2n, 3n], localSums.slice(0, 3))).toBe(expectedTotal);
   });
 
-  /**
-   * Exhibit 6 derives its verdict from THIS behaviour — it interpolates the
-   * coalition's real shares and compares the result to the victim's count. The
-   * test pins both branches: below the threshold the interpolation must land
-   * somewhere other than the secret; at or above it, exactly on the secret.
-   * If sub-threshold interpolation ever started returning the secret, the
-   * exhibit's "coalition fails" verdict would become false and this fails.
-   */
-  it('coalition attack: sub-threshold interpolation misses, threshold-or-more hits', () => {
+  it('coalition attack: threshold-or-more interpolation reconstructs exactly', () => {
     const rng = prng(0xfeedfacecafebeefn);
     const t = 3;
     const n = 5;
@@ -149,18 +151,6 @@ describe('Shamir round-trip (pure-TS reference)', () => {
       const secret = (rng.next().value % 9999n) + 1n; // a plausible enrollment count
       const { shares } = share(secret, t, n, rng);
       const at = (party: number) => shares[party - 1];
-
-      // 1 colluder: the interpolant through one point is the constant y, and a
-      // share equals the secret only if the polynomial is degenerate.
-      expect(lagrangeInterpolate([1n], [at(1)])).not.toBe(secret);
-
-      // 2 colluders: the line through (1,f(1)),(2,f(2)) hits f(0) only if the
-      // quadratic term vanished — with a random a2 that does not happen.
-      for (const [i, j] of [[1, 2], [2, 5], [3, 4]] as const) {
-        expect(
-          lagrangeInterpolate([BigInt(i), BigInt(j)], [at(i), at(j)]),
-        ).not.toBe(secret);
-      }
 
       // 3 colluders (= threshold): the guarantee collapses, exactly.
       expect(lagrangeInterpolate([1n, 2n, 3n], [at(1), at(2), at(3)])).toBe(secret);
@@ -171,6 +161,22 @@ describe('Shamir round-trip (pure-TS reference)', () => {
       expect(
         lagrangeInterpolate([1n, 2n, 3n, 4n], [at(1), at(2), at(3), at(4)]),
       ).toBe(secret);
+    }
+  });
+
+  it('a below-threshold interpolant can equal the secret without revealing it', () => {
+    const secret = 42n;
+    // This genuine degree-2 polynomial has f(1) = f(0). A one-point constant
+    // interpolant therefore guesses the secret exactly, but the holder cannot
+    // identify that guess: every candidate secret still has a polynomial
+    // through the same observed point.
+    const shareAtOne = evalPoly(secret, [1n, P - 1n], 1n);
+    expect(shareAtOne).toBe(secret);
+    expect(lagrangeInterpolate([1n], [shareAtOne])).toBe(secret);
+
+    for (const candidate of [0n, 7n, 999n, P - 1n]) {
+      const slope = sub(shareAtOne, candidate);
+      expect(evalPoly(candidate, [slope], 1n)).toBe(shareAtOne);
     }
   });
 

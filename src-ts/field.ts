@@ -63,10 +63,16 @@ export function inv(a: bigint): bigint {
  * The dot product of these with the corresponding y-values reconstructs f(0).
  */
 export function lagrangeBasisAtZero(xs: bigint[]): bigint[] {
-  return xs.map((xi, i) => {
+  const nodes = xs.map(mod);
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      if (nodes[i] === nodes[j]) throw new Error('x values must be distinct field elements');
+    }
+  }
+  return nodes.map((xi, i) => {
     let num = 1n;
     let den = 1n;
-    xs.forEach((xj, j) => {
+    nodes.forEach((xj, j) => {
       if (i === j) return;
       num = mul(num, sub(0n, xj));
       den = mul(den, sub(xi, xj));

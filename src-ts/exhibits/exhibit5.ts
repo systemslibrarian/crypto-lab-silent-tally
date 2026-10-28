@@ -82,7 +82,7 @@ export function renderExhibit5(container: HTMLElement, state: AppState): void {
             const sel = ui!.homParty === k + 1;
             return `
               <button type="button" data-hom-party="${k + 1}" aria-pressed="${sel}"
-                aria-label="Show local sum for party ${k + 1}${sel ? ' (selected)' : ''}"
+                aria-label="x = ${k + 1} — show local sum for party ${k + 1}${sel ? ' (selected)' : ''}"
                 class="px-3 py-2 rounded-lg border text-xs font-mono min-h-[44px] transition-colors
                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-950
                   ${sel
@@ -191,7 +191,7 @@ export function renderExhibit5(container: HTMLElement, state: AppState): void {
             const sel = ui!.reconSel.has(k + 1);
             return `
               <button type="button" data-recon-id="${k + 1}" aria-pressed="${sel}"
-                aria-label="Local sum T${k + 1}${sel ? ' (chosen)' : ''}"
+                aria-label="T${k + 1} — local sum${sel ? ' (chosen)' : ''}"
                 class="px-3 py-2 rounded-lg border text-xs font-mono min-h-[44px] transition-colors
                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-950
                   ${sel

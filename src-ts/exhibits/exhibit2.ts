@@ -1,5 +1,10 @@
 import type { AppState } from '../types.js';
 
+function enrollmentValue(input: HTMLInputElement): number | null {
+  const value = input.valueAsNumber;
+  return Number.isInteger(value) && value >= 1 && value <= 9999 ? value : null;
+}
+
 export function renderExhibit2(container: HTMLElement, state: AppState, onStateChange: () => void): void {
   container.innerHTML = `
     <div class="space-y-8">
@@ -26,15 +31,17 @@ export function renderExhibit2(container: HTMLElement, state: AppState, onStateC
               <div class="text-sm font-medium text-white mt-1">${h.name}</div>
             </div>
             <div class="p-4 bg-gray-950">
-              <label for="input-${h.id}" class="block text-xs text-gray-500 mb-1.5 font-mono">enrollment_count &gt;</label>
+              <label for="input-${h.id}" class="block text-xs text-gray-500 mb-1.5 font-mono">
+                enrollment_count &gt;<span class="sr-only"> for ${h.name}</span>
+              </label>
               <div class="flex items-center gap-2">
                 <input
                   type="number"
                   min="1"
                   max="9999"
+                  step="1"
                   value="${h.count}"
                   ${h.locked ? 'disabled' : ''}
-                  aria-label="Enrollment count for ${h.name}"
                   aria-describedby="error-${h.id}"
                   class="w-full bg-gray-900 border ${h.locked ? 'border-emerald-800 text-emerald-400' : 'border-gray-700 text-amber-300'} rounded px-3 py-2 font-mono text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 focus:ring-offset-gray-950 disabled:opacity-60 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   data-hospital-id="${h.id}"
@@ -51,7 +58,7 @@ export function renderExhibit2(container: HTMLElement, state: AppState, onStateC
                 data-lock-id="${h.id}"
                 ${h.locked ? 'disabled' : ''}
                 id="lock-${h.id}"
-                aria-label="${h.locked ? h.name + ' enrollment locked' : 'Lock in enrollment for ' + h.name}"
+                aria-label="${h.locked ? 'Locked In enrollment for ' + h.name : 'Lock In enrollment for ' + h.name}"
               >
                 ${h.locked ? '✓ Locked In' : 'Lock In'}
               </button>
@@ -84,26 +91,26 @@ export function renderExhibit2(container: HTMLElement, state: AppState, onStateC
 
     if (input && !h.locked) {
       input.addEventListener('input', () => {
-        const val = parseInt(input.value, 10);
-        if (isNaN(val) || val < 1 || val > 9999) {
+        const value = enrollmentValue(input);
+        if (value === null) {
           errorEl.textContent = 'Enter an integer between 1 and 9,999';
           errorEl.classList.remove('hidden');
         } else {
           errorEl.classList.add('hidden');
-          h.count = val;
+          h.count = value;
         }
       });
     }
 
     if (lockBtn && !h.locked) {
       lockBtn.addEventListener('click', () => {
-        const val = parseInt(input.value, 10);
-        if (isNaN(val) || val < 1 || val > 9999) {
+        const value = enrollmentValue(input);
+        if (value === null) {
           errorEl.textContent = 'Enter a valid integer (1–9,999) before locking.';
           errorEl.classList.remove('hidden');
           return;
         }
-        h.count = val;
+        h.count = value;
         h.locked = true;
         onStateChange();
         // The grid re-renders and the locked button becomes disabled, so move
