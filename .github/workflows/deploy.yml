@@ -50,7 +50,22 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install wasm-pack
+        # Pinned, NOT the action default of `latest`. That lookup is an
+        # unauthenticated GET of the GitHub releases API whose result is never
+        # checked: `JSON.parse(body).tag_name || 'v0.9.1'`. A rate-limited reply
+        # carries no `tag_name`, so the action silently installs the hardcoded
+        # fallback -- wasm-pack v0.9.1, from February 2020 -- instead of failing.
+        # That build ships a pre-reference-types `wasm-opt`, which parses the
+        # module in MVP mode and dies on the second table every rustc since 1.82
+        # emits for wasm32-unknown-unknown:
+        #   [parse exception: Only 1 table definition allowed in MVP (at 0:455)]
+        # Run 43794762059 is the proof: the `test` job drew v0.15.1 and passed,
+        # this job drew v0.9.1 ninety seconds later and failed, and the failed
+        # build skipped `deploy` and took the browser gate down with it. Pinning
+        # deletes the API call, so there is no coin left to flip. Bump on purpose.
         uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: 'v0.15.1'
 
       - name: Build WASM
         run: wasm-pack build --target web --out-dir pkg

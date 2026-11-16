@@ -36,7 +36,15 @@ jobs:
         run: cargo test
 
       - name: Install wasm-pack
+        # Pinned for the reason spelled out in deploy.yml: the action's `latest`
+        # lookup silently falls back to a hardcoded wasm-pack v0.9.1 when the
+        # unauthenticated releases API rate-limits it, and that build's `wasm-opt`
+        # cannot parse the reference-types module current rustc emits. This job
+        # won the coin flip in run 43794762059 while `build` lost it; same risk.
+        # Keep this version and deploy.yml's in step.
         uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: 'v0.15.1'
 
       - name: Build WASM (needed for the TypeScript typecheck)
         run: wasm-pack build --target web --out-dir pkg
