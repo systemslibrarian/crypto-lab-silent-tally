@@ -118,10 +118,13 @@ $\sum_i s_i$, because polynomial evaluation is linear:
 $(f_1 + \dots + f_5)(j) = T_j$ and $(f_1 + \dots + f_5)(0) = \sum_i s_i$.
 Exhibit 5 makes this concrete — it lines up the five summed shares at any
 $x = k$ against the summed secrets, so you can *see* that $T_k$ is a share of the
-total rather than take it on faith. Any $t = 3$ of those local sums reconstruct
-the grand total via Lagrange interpolation at $x = 0$ — and **nothing else** is
-ever revealed. A live 3-of-5 chooser lets you confirm every valid subset yields
-the same total, while any 2 leave it undetermined.
+total rather than take it on faith. Once all five hospitals have shared their
+inputs, any $t = 3$ of those local sums reconstruct the grand total via Lagrange
+interpolation at $x = 0$ — and **nothing else** is ever revealed. A live 3-of-5
+chooser lets you confirm every valid subset yields the same total, while any 2
+leave it undetermined. The threshold covers a hospital that goes offline *after*
+sharing — its shares are already inside the others' local sums — not one that
+never submits a count: an input that was never shared is in no local sum.
 
 With only $t - 1 = 2$ shares, the secret is information-theoretically hidden: for
 *every* candidate $f(0)$ in $\mathrm{GF}(p)$ there is exactly one degree-2

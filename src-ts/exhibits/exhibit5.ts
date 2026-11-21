@@ -59,7 +59,8 @@ export function renderExhibit5(container: HTMLElement, state: AppState): void {
           Each hospital sums the five shares it holds — one from each party's polynomial.
           Because Shamir sharing is <strong class="text-white">additively homomorphic</strong>, these local sums
           {T₁, …, T₅} form a valid Shamir sharing of the <strong class="text-white">sum of all secrets</strong>.
-          Any 3 local sums suffice to reconstruct the total via Lagrange interpolation.
+          Once all five hospitals have shared their inputs, any 3 local sums suffice to reconstruct the
+          five-hospital total via Lagrange interpolation.
         </p>
       </div>
 
@@ -180,9 +181,16 @@ export function renderExhibit5(container: HTMLElement, state: AppState): void {
         <div>
           <h3 class="text-sm font-semibold text-gray-300">Try it: pick which local sums reconstruct the total</h3>
           <p class="text-xs text-gray-400 mt-1 leading-relaxed">
-            Select any 3 of the 5 local sums and Lagrange-interpolate them at x = 0. Every valid 3-subset yields the
-            <strong class="text-white">same</strong> total — reconstruction doesn't depend on <em>which</em> parties show up.
-            Select only 2 and it's undetermined; the total cannot be pinned down.
+            All five hospitals have already shared their inputs — that step finished in the previous exhibit. From
+            here, select any 3 of the 5 local sums and Lagrange-interpolate them at x = 0. Every valid 3-subset yields
+            the <strong class="text-white">same</strong> five-hospital total, so it doesn't matter <em>which</em> three
+            parties are still online to reconstruct. Select only 2 and it's undetermined; the total cannot be pinned down.
+          </p>
+          <p class="text-xs text-gray-400 mt-2 leading-relaxed">
+            <strong class="text-white">Going offline after sharing is not the same as never submitting a count.</strong>
+            A hospital that distributed its shares and then dropped out is still counted: its shares are already inside
+            every other party's local sum. A hospital that never shared an input contributed nothing to those sums, and
+            "any three" cannot recover a count that was never entered.
           </p>
         </div>
 
