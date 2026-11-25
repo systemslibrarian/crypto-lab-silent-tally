@@ -23,9 +23,9 @@ export function renderExhibit2(container: HTMLElement, state: AppState, onStateC
       </div>
 
       <p class="text-gray-300 text-sm leading-relaxed">
-        Each hospital privately enters its enrollment count below. These inputs are styled as isolated terminals —
-        in a real deployment, each hospital would enter its count on its own device. No hospital can see
-        another's value. All five must be locked before proceeding.
+        You can see all five counts in this classroom view. Locking a count confirms it for the tally;
+        it stays visible here. In the protocol, each hospital enters its count on its own device
+        and sends shares to the other hospitals. Lock all five counts to continue.
       </p>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="hospital-inputs" role="list" aria-label="Hospital enrollment inputs">

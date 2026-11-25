@@ -8,7 +8,9 @@ Mersenne prime $p = 2^{61}-1$, **additive homomorphism**, and **Lagrange
 interpolation**.
 
 It solves a concrete problem: computing a combined clinical-trial enrollment
-total across five hospitals **without disclosing any hospital's private input**.
+total across five hospitals by exchanging shares of their counts. The classroom
+view shows all five inputs on one screen. Locking an input confirms the value
+used in the tally. In the protocol, each hospital keeps its input on its own device.
 The protocol is threshold MPC with $t = 3,\ n = 5$ — fewer than three shares
 cannot reconstruct a secret. The privacy guarantee demonstrated here is
 **information-theoretic** for the underlying sharing model: with fewer than $t$
