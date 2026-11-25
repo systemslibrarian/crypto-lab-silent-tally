@@ -2,7 +2,16 @@ import type { AppState } from '../types.js';
 
 function enrollmentValue(input: HTMLInputElement): number | null {
   const value = input.valueAsNumber;
-  return Number.isInteger(value) && value >= 1 && value <= 9999 ? value : null;
+  if (!Number.isInteger(value) || value < 1 || value > 9999) return null;
+
+  // valueAsNumber can round a fraction to an integer. Check that any decimal
+  // places left after applying the exponent contain only zeroes.
+  const [mantissa, exponent = '0'] = input.value.toLowerCase().split('e');
+  const [whole, fraction = ''] = mantissa.split('.');
+  const decimalPlaces = fraction.length - Number(exponent);
+  const digits = whole + fraction;
+  if (decimalPlaces > 0 && /[1-9]/.test(digits.slice(-decimalPlaces))) return null;
+  return value;
 }
 
 export function renderExhibit2(container: HTMLElement, state: AppState, onStateChange: () => void): void {
@@ -40,7 +49,6 @@ export function renderExhibit2(container: HTMLElement, state: AppState, onStateC
                   min="1"
                   max="9999"
                   step="1"
-                  value="${h.count}"
                   ${h.locked ? 'disabled' : ''}
                   aria-describedby="error-${h.id}"
                   class="w-full bg-gray-900 border ${h.locked ? 'border-emerald-800 text-emerald-400' : 'border-gray-700 text-amber-300'} rounded px-3 py-2 font-mono text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 focus:ring-offset-gray-950 disabled:opacity-60 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -89,16 +97,20 @@ export function renderExhibit2(container: HTMLElement, state: AppState, onStateC
     const lockBtn = container.querySelector(`#lock-${h.id}`) as HTMLButtonElement;
     const errorEl = container.querySelector(`#error-${h.id}`) as HTMLElement;
 
-    if (input && !h.locked) {
+    input.value = h.draft ?? String(h.count);
+    const showError = (message: string | null) => {
+      errorEl.textContent = message ?? '';
+      errorEl.classList.toggle('hidden', message === null);
+      input.setAttribute('aria-invalid', String(message !== null));
+    };
+    const validateDraft = () => {
+      showError(enrollmentValue(input) === null ? 'Enter an integer between 1 and 9,999' : null);
+    };
+    if (!h.locked) {
+      validateDraft();
       input.addEventListener('input', () => {
-        const value = enrollmentValue(input);
-        if (value === null) {
-          errorEl.textContent = 'Enter an integer between 1 and 9,999';
-          errorEl.classList.remove('hidden');
-        } else {
-          errorEl.classList.add('hidden');
-          h.count = value;
-        }
+        h.draft = input.value;
+        validateDraft();
       });
     }
 
@@ -106,11 +118,11 @@ export function renderExhibit2(container: HTMLElement, state: AppState, onStateC
       lockBtn.addEventListener('click', () => {
         const value = enrollmentValue(input);
         if (value === null) {
-          errorEl.textContent = 'Enter a valid integer (1–9,999) before locking.';
-          errorEl.classList.remove('hidden');
+          showError('Enter a valid integer (1–9,999) before locking.');
           return;
         }
         h.count = value;
+        delete h.draft;
         h.locked = true;
         onStateChange();
         // The grid re-renders and the locked button becomes disabled, so move

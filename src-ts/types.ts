@@ -2,6 +2,7 @@ export interface Hospital {
   id: number;
   name: string;
   count: number;
+  draft?: string;
   locked: boolean;
 }
 

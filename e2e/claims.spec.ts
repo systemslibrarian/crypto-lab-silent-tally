@@ -175,7 +175,7 @@ test('exhibit 2: an out-of-range enrollment is refused, named, and cannot be loc
   await page.locator('#btn-next').click();
   await expect(page.locator('#progress')).toHaveText('Exhibit 2 of 6');
 
-  for (const bad of ['0', '10000', '1.5']) {
+  for (const bad of ['', '0', '10000', '1.5', '1.0000000000000001', '9999.00000000000000001', '1.0000000000000000001e2']) {
     await page.locator('[data-hospital-id="1"]').fill(bad);
     await expect(page.locator('#error-1'), bad).toBeVisible();
     expect(await textOf(page.locator('#error-1')), bad).toBe('Enter an integer between 1 and 9,999');
@@ -197,6 +197,25 @@ test('exhibit 2: an out-of-range enrollment is refused, named, and cannot be loc
   await page.locator('[data-lock-id="1"]').click();
   await expect(page.locator('[data-lock-id="1"]')).toBeDisabled();
   expect(await textOf(exhibit(page))).toContain('1 of 5 hospitals locked in');
+});
+
+test('exhibit 2: an invalid draft survives another lock and navigation until the hospital corrects it', async ({ page }) => {
+  await page.locator('#btn-next').click();
+  const input = page.locator('#input-1');
+  await input.fill('10000');
+  await page.locator('#lock-2').click();
+  await expect(input).toHaveValue('10000');
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('#error-1')).toBeVisible();
+  await page.locator('#btn-prev').click();
+  await page.locator('#btn-next').click();
+  await expect(input).toHaveValue('10000');
+  await expect(page.locator('#error-1')).toBeVisible();
+  await input.fill('12300e-2');
+  await expect(input).toHaveAttribute('aria-invalid', 'false');
+  await page.locator('#lock-1').click();
+  await expect(input).toBeDisabled();
+  await expect(input).toHaveValue('123');
 });
 
 // ---------------------------------------------------------------------------
